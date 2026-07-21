@@ -48,20 +48,38 @@ selected window; stock is always the current live snapshot, not historical). See
 `04_DESIGN/2026-07-20__common_daily_dataset_design.md` for the extraction/aggregation design and
 `05_IMPLEMENTATION/src/anpia_period_aggregation.py` for the implementation.
 
-## ph_task publication result
+## Production Connection Model
+
+- Source-data reads use protected PostgreSQL credentials (`ANPIA_DB_*` via
+  `05_IMPLEMENTATION/src/anpia_config.py`), never MCP.
+- Final HTML publication uses the same protected credential configuration -- also never MCP.
+- `tech_team_outputs.ph_task` is the only production output table; the production pipeline
+  contains no `daily_task` code path at all.
+- MCP is not a production runtime dependency (see "Database access method" below for what MCP
+  *was* used for, and why that is historical/interactive, not production).
+- Automation is built but remains inactive pending VM access.
+
+## ph_task publication result (production pipeline output)
 
 Published to `tech_team_outputs.ph_task` row **id=399** -- updated in place from v001 to v002
 (`version_level` 1 -> 2, `version_status='released'`), `project_code=ANPIA`,
 `assigned_user=Nivarnan`. Exactly one same-day ANPIA row confirmed before and after the write.
-Evidence: `07_EVIDENCE/publication/2026-07-20_nivarnan_anpia_v002_ph_task_manifest.json`,
+This is the **only** production output table -- the write was performed with credential-based
+PostgreSQL connections (`publish_ph_task_production_report.py` / `anpia_daily_pipeline.py`), not
+MCP. Evidence: `07_EVIDENCE/publication/2026-07-20_nivarnan_anpia_v002_ph_task_manifest.json`,
 `07_EVIDENCE/validation/2026-07-20__anpia_v002_publication_evidence.md`.
 
-## daily_task publication result
+## daily_task record (separate developer daily-work record -- NOT part of production)
 
-Published to `daily_task.tbl_anpia_satheskanth` row **id=2** (`work_date=2026-07-20`,
-`developer=Satheskanth`, `project_code=ANPIA`, `requirement_id=REQ-01`, `deliverable_id=D02`,
-`aios_phase=DEPLOY`, `status=COMPLETE`). One matching row confirmed before/after. Evidence:
-`07_EVIDENCE/publication/2026-07-20_anpia_daily_task_manifest.json`,
+`daily_task.tbl_anpia_satheskanth` is a **separate developer daily-work-record tool**, entirely
+outside the ANPIA production pipeline: no production dependency, no scheduler dependency, no
+source-data dependency, no ph_task publication dependency, and no future automatic execution.
+`update_daily_task_anpia.py` is never called by `anpia_daily_pipeline.py`, `update_to_table.py`,
+or any deployment file. Today's row: `daily_task.tbl_anpia_satheskanth` id=2
+(`work_date=2026-07-20`, `developer=Satheskanth`, `project_code=ANPIA`, `requirement_id=REQ-01`,
+`deliverable_id=D02`, `aios_phase=DEPLOY`, `status=COMPLETE`), written via a direct interactive
+MCP tool call in an earlier session, not by any script. One matching row confirmed before/after.
+Evidence: `07_EVIDENCE/publication/2026-07-20_anpia_daily_task_manifest.json`,
 `07_EVIDENCE/validation/2026-07-20__anpia_daily_task_publication_evidence.md`.
 
 ## Manual "update to table" command
@@ -91,22 +109,28 @@ detail: `05_IMPLEMENTATION/deployment/README.md`.
 
 - Evidence index: `07_EVIDENCE/EVIDENCE_INDEX.md`
 - Validation index: `06_VALIDATION/VALIDATION_INDEX.md`
-- Final project handover: `10_HANDOVER/2026-07-20__anpia_final_project_handover.md`
+- **Final system handover (single continuation document):** `10_HANDOVER/2026-07-20__anpia_final_system_handover.md`
+- Earlier project-delivery handover (superseded by the above for continuation purposes, kept as
+  audit trail): `10_HANDOVER/2026-07-20__anpia_final_project_handover.md`
 - Start-here (queryable project entry point): `00_PROJECT_CONTROL/START-HERE.md`
 
 ## Database access method
 
-Two connection mechanisms exist and are not interchangeable:
+**The production runtime -- `anpia_daily_pipeline.py`, `publish_ph_task_production_report.py`,
+`update_to_table.py`, and the scheduled-automation package -- has zero MCP dependency.** All
+source-data reads and the `ph_task` publication write use only credential-based PostgreSQL
+connections, loaded exclusively through `05_IMPLEMENTATION/src/anpia_config.py`
+(`get_db_config()` / `safe_db_metadata()`) -- environment-only, no hardcoded fallback, fails
+closed when configuration is incomplete. Confirmed directly from code: no MCP import, no MCP
+command, no MCP URL, and no Claude Code tool dependency exist anywhere in these files (see
+`06_VALIDATION/2026-07-20__anpia_final_production_architecture_validation.md`).
 
-- **Interactive work (Claude Code sessions):** the approved PostgreSQL MCP connection
-  (`mcp__claude_ai_postgres__*`) -- used for all live discovery, validation, and guarded
-  read/write operations performed in an interactive session. No automatic fallback to direct
-  credentials if the approved MCP cannot complete a required operation.
-- **Standalone automation (future VM only):** direct connection via `ANPIA_DB_*` environment
-  variables, loaded exclusively through `05_IMPLEMENTATION/src/anpia_config.py`
-  (`get_db_config()` / `safe_db_metadata()`) -- environment-only, no hardcoded fallback, fails
-  closed when configuration is incomplete. Required only because a standalone scheduled process
-  cannot invoke an interactive session's MCP tool bindings.
+Separately, **the approved PostgreSQL MCP connection** (`mcp__claude_ai_postgres__*`) was used
+during development for interactive, one-off Claude Code session work -- live discovery,
+validation reads, and (for the `daily_task` row specifically) a guarded write performed directly
+via MCP tool calls in-session, not by any pipeline script. This is historical evidence of how
+*administrative/session* work was done; it does **not** represent, and is never invoked by, the
+production runtime architecture described above.
 
 `.mcp.json` documents two configured MCP servers (`ledsone-docs`, `ledsone-db`); this project's
 own `mcp__claude_ai_postgres__*` connection is provided by the runtime environment, not by

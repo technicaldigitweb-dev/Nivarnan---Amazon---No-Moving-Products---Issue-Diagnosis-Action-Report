@@ -76,23 +76,26 @@ sudo ./remove_anpia_timer.sh
   not by any property of the scheduler.
 - **`daily_task` is never referenced anywhere in this pipeline or its deployment files.**
 
-## Connection model: MCP (interactive) vs. direct credentials (automation)
+## Connection model: this deployment package has zero MCP dependency
 
-Two distinct database-connection mechanisms exist in this project and must not be conflated:
+**Every file in this directory, and the pipeline they invoke (`anpia_daily_pipeline.py`), uses
+only credential-based PostgreSQL connections.** There is no MCP import, MCP command, MCP URL, or
+Claude Code tool dependency anywhere in the production runtime -- confirmed directly from code in
+`06_VALIDATION/2026-07-20__anpia_final_production_architecture_validation.md`.
 
-- **Approved PostgreSQL MCP connection** -- used for all interactive Claude Code work in this
-  project (discovery, validation, reads, and guarded writes performed live in a session). This is
-  the preferred method whenever an interactive agent session is doing the work, and the project's
-  own working rule is: do not automatically fall back to direct credentials if the approved MCP
-  cannot complete a required operation -- stop, report the exact limitation, and wait for explicit
-  approval before using any credential fallback.
 - **Direct runtime credentials** (`.env` / `ANPIA_DB_*` via `anpia_config.get_db_config()`) --
-  used only by standalone automation (this deployment package) where no interactive MCP tool
-  binding exists to call. A `systemd` timer or cron job runs a plain Python process with no access
-  to any interactive session's MCP tools, so it has no alternative to a protected environment file.
+  the only connection mechanism this deployment package uses. A `systemd` timer or cron job runs
+  a plain Python process with no access to any interactive session's tools, so a protected
+  environment file is the only viable mechanism here regardless of any other consideration.
+- **Approved PostgreSQL MCP connection** (`mcp__claude_ai_postgres__*`) -- used only for
+  historical, one-off *interactive* Claude Code session work during development (discovery,
+  validation reads, and one guarded `daily_task` write performed live in a session, not by any
+  script). This is not part of, and is never invoked by, this deployment package or the
+  production pipeline. It is documented here only to prevent confusion with unrelated
+  session-history evidence elsewhere in this project.
 
-This distinction is deliberate, not an inconsistency: interactive sessions prefer MCP; unattended
-automation requires a protected local credential file. Keep the automation's runtime
+This distinction is deliberate: unattended automation requires a protected local credential file
+regardless of what any interactive session separately used. Keep the automation's runtime
 configuration **disabled** (this package is not installed or enabled) until VM access and
 technical approval both exist -- do not activate automation during any interim closure task.
 
