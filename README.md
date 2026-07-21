@@ -1,74 +1,185 @@
 # Amazon - No-Moving Products - Issue Diagnosis & Action Report
 
-## Project Name
-Nivarnan - Amazon - No-Moving Products - Issue Diagnosis & Action Report
+## Project identity
 
-## Purpose
-Generate a daily Amazon report (accounts LEDSONE and DCVoltage; marketplaces UK, Germany, France, Italy) showing PPC spend, sales, and current stock per Amazon Account + Marketplace + ASIN + resolved SKU, to support diagnosis and action on no-moving/attention-worthy products. **Scope corrected 2026-07-17** from an earlier UK-only, high-spend-filtered draft — see `01_REQUIREMENTS/2026-07-17__amazon_high_spend_asin_uk_stock_requirement.md` §2A (REQ-AMZ-NMP-001-D01) for the full corrected written requirement; §2 is preserved as superseded audit trail.
+- **Project name:** Nivarnan - Amazon - No-Moving Products - Issue Diagnosis & Action Report
+- **Project code:** ANPIA
+- **Requirement / deliverable:** REQ-01-D02
+- **Business owner / assigned user:** Nivarnan
+- **Developer:** Satheskanth
+- **GitHub repository:** `https://github.com/technicaldigitweb-dev/Nivarnan---Amazon---No-Moving-Products---Issue-Diagnosis-Action-Report.git`
 
-## Business Question
-Across LEDSONE and DCVoltage's UK, Germany, France, and Italy Amazon listings, what is each ASIN/SKU's PPC spend, recent sales, and current stock — viewed over 7, 14, or 30 complete days?
+## Business purpose
 
-## Approved Scope
-**Included:** Amazon only; accounts LEDSONE + DCVoltage; marketplaces UK/Germany/France/Italy; 7/14/30-complete-day period views; sales during the same period; current stock (UK→UK warehouse, Germany/France/Italy→shared German warehouse); ASIN-to-SKU mapping (row key = account+marketplace+ASIN+resolved SKU, all valid combinations shown, no Top-N/percentile/spend cutoff); account+marketplace+period filters; the 15 confirmed blue columns only; future HTML output; future ph_task publication after approval.
+Generate a daily Amazon report (accounts LEDSONE and DCVoltage; marketplaces UK, Germany,
+France, Italy) showing PPC spend, sales, and current stock per Amazon Account + Marketplace +
+ASIN + resolved SKU, to support diagnosis and action on no-moving/attention-worthy products.
+Full corrected written requirement: `01_REQUIREMENTS/2026-07-17__amazon_high_spend_asin_uk_stock_requirement.md`
+§2A and `01_REQUIREMENTS/2026-07-20_satheskanth_REQ-ANPIA_REQ-01-D02.md`.
 
-**Excluded:** eBay or Shopify; marketplaces beyond UK/Germany/France/Italy; historical stock reconstruction; PPC changes; stock changes; reorder-rule changes; threshold creation; schema/table/view changes; ph_task writes during discovery; full automation before validation; the 8 yellow columns (Category, Stock Age (Days), Root Cause, Recommended Action, Priority, Status, Owner, Last Reviewed) in any output.
+## Production report purpose and active output
 
-Full scope detail in `01_REQUIREMENTS/2026-07-17__amazon_high_spend_asin_uk_stock_requirement.md` §2A and `03_DISCOVERY/2026-07-17__multi_account_marketplace_discovery_addendum.md`.
+One self-contained HTML report, per Amazon Account + Marketplace + ASIN + resolved SKU, showing
+the 15 confirmed blue columns (ASIN, SKU, Product Title, Days Since Last Sale, Units in Stock,
+Sessions, Page Views, Units Ordered, Conversion Rate, CTR, Buy Box %, Price, Category Avg Price,
+PPC Spend, ACOS), filterable by account/marketplace/7-14-30-day period, with a mandatory
+live-stock disclosure.
 
-## Current Sources
-- `Sources/Amazon - No-Moving Products - Issue Diagnosis & Action Report-Nivarnan-v001.xlsx`
-- `Sources/table_location_business_details 3.xlsx`
-- `Sources/aios_architecture.md`
-- `Sources/db_access_templates/` (temp_user.py, update_table.py, temp_user_access_report.pdf)
-- `Sources/ph_task_reference/` (ph_task_assigned_user_team_rules.md, ph_task_schema.md, ph_task_versioning_rules.md)
-- `Sources/AIOS GPT Project intructions, prompts and skill files-20260619T091849Z-3-001.zip`
-- `Sources/skills 3 (1) (3).zip`
-- `Sources/skills_minimal_pack 2 (2).zip`
+- **Active production output:** `09_OUTPUTS/html/production/2026-07-20_nivarnan_anpia_v002.html`
+  (SHA-256 `2a95437056a88bd16ffa368f8d7bbf8c6d7e9663af0cfb4376c45063ac04acc2`)
+- **Prior version (preserved, not active):** `09_OUTPUTS/html/production/2026-07-20_nivarnan_anpia_v001.html`
+  (SHA-256 `4af3de8c5571073dc31de521d0d5844b91530b19c68a75ea8f27bf744d245d66`)
+- v002 fixed a user-reported row-density defect in the hosted view (real-browser-verified 15
+  rows visible vs. v001's 4-8) via spacing-only CSS changes, never font-size.
 
-`Sources/` remains the preserved original intake location; nothing has been moved or deleted from it. Approved, non-sensitive assets have since been mapped/copied (with checksum verification) into the AIOS structure — see `02_SOURCE/2026-07-17__source_register.md` for the full mapping:
+## Source-data scope
 
-- `00_PROJECT_CONTROL/source_references/` — AIOS project instructions ZIP, `aios_architecture.md` (authoritative project control)
-- `02_SOURCE/requirements/` — Nivarnan requirement workbook (authoritative requirement source)
-- `08_SKILLS/database/` — `table_location_business_details 3.xlsx` (approved database routing reference)
-- `08_SKILLS/ph_task_reference/` — approved ph_task schema/versioning/team reference
+Amazon only; accounts LEDSONE + DCVoltage; marketplaces UK/Germany/France/Italy; current stock
+(UK -> UK warehouse, Germany/France/Italy -> shared German warehouse); ASIN-to-SKU mapping (row
+key = account+marketplace+ASIN+resolved SKU, all valid combinations shown, no Top-N/percentile/
+spend cutoff). Full scope detail in
+`01_REQUIREMENTS/2026-07-17__amazon_high_spend_asin_uk_stock_requirement.md` §2A and
+`03_DISCOVERY/2026-07-17__multi_account_marketplace_discovery_addendum.md`.
 
-`Sources/skills 3 (1) (3).zip` and `Sources/skills_minimal_pack 2 (2).zip` remain **unresolved (AMBER)** — they contain conflicting overlapping content and neither has been selected, merged, or copied as canonical. `Sources/db_access_templates/` remains restricted (not opened beyond a keyword-count scan, not copied).
+## 7/14/30-day reporting architecture
 
-## Database Access Method
-Two live PostgreSQL MCP connections are available: **primary** `mcp__claude_ai_postgres__*` (the AIOS/skills-related database — used for all report data; confirmed to be the database this project's routing workbook, skill files, and `ph_task` schema were written against) and **fallback** `.mcp.json`'s `mcp__ledsone-db__*` (a different, legitimate operational database — used only if a required field is proven missing from the primary; not needed so far). `.mcp.json` itself remains unchanged; no credential values have been read from either connection's configuration.
+The report supports 7, 14, and 30 complete-day period views (sales/PPC aggregated over the
+selected window; stock is always the current live snapshot, not historical). See
+`04_DESIGN/2026-07-20__common_daily_dataset_design.md` for the extraction/aggregation design and
+`05_IMPLEMENTATION/src/anpia_period_aggregation.py` for the implementation.
 
-## Expected Output
-One validated HTML report (`09_OUTPUTS/html/`) showing, per Amazon Account + Marketplace + ASIN + resolved SKU: the 15 confirmed blue columns (ASIN, SKU, Product Title, Days Since Last Sale, Units in Stock, Sessions, Page Views, Units Ordered, Conversion Rate, CTR, Buy Box %, Price, Category Avg Price, PPC Spend, ACOS), filterable by account/marketplace/7-14-30-day period, with a mandatory live-stock disclosure. Future publication to `tech_team_outputs.ph_task` only after technical validation, business approval, and verification of ph_task maintenance rules — no database publication is approved yet.
+## ph_task publication result
+
+Published to `tech_team_outputs.ph_task` row **id=399** -- updated in place from v001 to v002
+(`version_level` 1 -> 2, `version_status='released'`), `project_code=ANPIA`,
+`assigned_user=Nivarnan`. Exactly one same-day ANPIA row confirmed before and after the write.
+Evidence: `07_EVIDENCE/publication/2026-07-20_nivarnan_anpia_v002_ph_task_manifest.json`,
+`07_EVIDENCE/validation/2026-07-20__anpia_v002_publication_evidence.md`.
+
+## daily_task publication result
+
+Published to `daily_task.tbl_anpia_satheskanth` row **id=2** (`work_date=2026-07-20`,
+`developer=Satheskanth`, `project_code=ANPIA`, `requirement_id=REQ-01`, `deliverable_id=D02`,
+`aios_phase=DEPLOY`, `status=COMPLETE`). One matching row confirmed before/after. Evidence:
+`07_EVIDENCE/publication/2026-07-20_anpia_daily_task_manifest.json`,
+`07_EVIDENCE/validation/2026-07-20__anpia_daily_task_publication_evidence.md`.
+
+## Manual "update to table" command
+
+A reusable, dry-run-safe, safety-gated pipeline for republishing the report on demand:
+
+- `05_IMPLEMENTATION/anpia_daily_pipeline.py` -- full 16-step pipeline (lock, fresh extraction,
+  build, validate, publish, evidence, structured log)
+- `05_IMPLEMENTATION/update_to_table.py` + `08_SKILLS/anpia-update-to-table/SKILL.md` -- the
+  documented manual command and its usage pattern
+- Safe default: no arguments or `--dry-run` never writes to the database. Publishing requires
+  both `--publish` and a confirmation token.
+
+## Future automation design and status
+
+**`AUTOMATION_BUILT_NOT_ACTIVATED`.** A full deployment package targeting a daily 12:00 PM
+Asia/Colombo run exists in `05_IMPLEMENTATION/deployment/` (systemd service + timer preferred,
+cron fallback, install/remove/check scripts) but has **not** been installed, enabled, or started
+on any machine.
+
+**Reason:** VM access has not yet been provided. Deployment prerequisite: a target VM, a
+dedicated non-root service account, the real deployment path, and a protected `.env` file on
+that VM (never committed -- see `.env.example` for the required variable names only). Full
+detail: `05_IMPLEMENTATION/deployment/README.md`.
+
+## Evidence, validation, and handover locations
+
+- Evidence index: `07_EVIDENCE/EVIDENCE_INDEX.md`
+- Validation index: `06_VALIDATION/VALIDATION_INDEX.md`
+- Final project handover: `10_HANDOVER/2026-07-20__anpia_final_project_handover.md`
+- Start-here (queryable project entry point): `00_PROJECT_CONTROL/START-HERE.md`
+
+## Database access method
+
+Two connection mechanisms exist and are not interchangeable:
+
+- **Interactive work (Claude Code sessions):** the approved PostgreSQL MCP connection
+  (`mcp__claude_ai_postgres__*`) -- used for all live discovery, validation, and guarded
+  read/write operations performed in an interactive session. No automatic fallback to direct
+  credentials if the approved MCP cannot complete a required operation.
+- **Standalone automation (future VM only):** direct connection via `ANPIA_DB_*` environment
+  variables, loaded exclusively through `05_IMPLEMENTATION/src/anpia_config.py`
+  (`get_db_config()` / `safe_db_metadata()`) -- environment-only, no hardcoded fallback, fails
+  closed when configuration is incomplete. Required only because a standalone scheduled process
+  cannot invoke an interactive session's MCP tool bindings.
+
+`.mcp.json` documents two configured MCP servers (`ledsone-docs`, `ledsone-db`); this project's
+own `mcp__claude_ai_postgres__*` connection is provided by the runtime environment, not by
+`.mcp.json`. `.mcp.json` itself is not modified as part of routine project work and is not
+tracked in Git (local tooling configuration).
+
+## Current sources
+
+`Sources/` is the preserved original intake location (not tracked in Git -- see `.gitignore`).
+Approved, non-sensitive assets have been mapped/copied (with checksum verification) into the
+governed AIOS structure -- see `02_SOURCE/2026-07-17__source_register.md` for the full mapping:
+
+- `00_PROJECT_CONTROL/source_references/` -- AIOS project instructions, `aios_architecture.md`
+- `02_SOURCE/requirements/` -- Nivarnan requirement workbook (authoritative requirement source)
+- `08_SKILLS/database/` -- database routing reference workbook
+- `08_SKILLS/ph_task_reference/` -- approved ph_task schema/versioning/team reference
+
+`Sources/skills 3 (1) (3).zip` and `Sources/skills_minimal_pack 2 (2).zip` remain **unresolved
+(AMBER)** -- conflicting overlapping content, neither selected as canonical.
+
+**`Sources/db_access_templates/`** (`temp_user.py`, `update_table.py`,
+`temp_user_access_report.pdf`) is a **protected, security-restricted** location as of 2026-07-20
+-- a pre-Git secret scan found real database credentials in these files. They are not modified,
+not executed, and not imported by any implementation code. See
+`00_PROJECT_CONTROL/PROTECTED_SOURCE_INVENTORY.md` and
+`11_REVIEW/2026-07-20__anpia_credential_rotation_required.md`.
 
 ## Reviewers
+
 - Coordinator: Sathees or assigned coordinator
 - Technical reviewer: Sajeesan or assigned senior developer
 - Queryability reviewer: Tamil Selvan or assigned reviewer
 - Business validator: Nivarnan or assigned Amazon business owner
 
-## Current Status
-Scope corrected 2026-07-17 to multi-account (LEDSONE, DCVoltage) / multi-marketplace (UK, Germany, France, Italy) per two authoritative user-provided images. Discovery (`03_DISCOVERY/`) and design/implementation are in progress for REQ-AMZ-NMP-001-D01. 8 of 15 blue columns are fully source-verified; 2 have a documented interim default; 5 remain REVIEW_REQUIRED pending a technical decision on the traffic-data source (see `07_EVIDENCE/database/2026-07-17__blue_field_source_mapping.md`). `database_write_permission` and `production_change_permission` are **NOT APPROVED** — no ph_task publication will occur until ph_task metadata is explicitly approved.
+## Known limitations
 
-## Safety Rules
-- No database credentials are to be stored in this repository or in any file under version control.
-- No source files are to be moved, renamed, deleted, or modified without explicit approval.
-- `mcp.json` / `.mcp.json` is not to be modified as part of routine project work.
-- No database write actions without explicit approval.
-- Read-only discovery first; no production/database writes; no table, schema, view, or function creation.
-- No `ph_task` insert or update without explicit approval; no ph_task writes during discovery.
-- No business-rule creation (e.g. "high spend" definition) without business validation.
-- No credential exposure; no work outside the project root; no parent-AIOS promotion.
-- The two conflicting database skill ZIPs (`Sources/skills 3 (1) (3).zip`, `Sources/skills_minimal_pack 2 (2).zip`) must not be selected, merged, or copied as canonical without technical review.
+- Current stock is a live snapshot, not historical stock (mandatory disclosure included in the
+  report).
+- Sessions, Page Views, Buy Box %, Conversion Rate, and Click-Through Rate have no single
+  confidently-complete live source (see `07_EVIDENCE/database/2026-07-17__blue_field_source_mapping.md`).
+- The real hosted-modal container dimensions remain unconfirmed -- the v002 row-density fix rests
+  on a disclosed, calibrated browser simulation, not a direct measurement of the real hosted
+  tool.
+- A documented company-default convention for `ph_task` versioning (insert-new + reject-old) was
+  found to conflict with the update-in-place approach actually used for row 399 -- flagged for
+  owner review, not silently resolved (`08_SKILLS/ph_task_reference/ph_task_versioning_rules.md`).
+- `daily_task.tbl_anpia_satheskanth` mapping conventions (`aios_phase` value, `deliverable_id`
+  format, `developer` casing) differ slightly from the one 2026-07-17 precedent row -- flagged
+  for owner standardization, not a functional blocker.
+- Credential rotation for the exposed database password is **required, not yet confirmed** --
+  see `11_REVIEW/2026-07-20__anpia_credential_rotation_required.md`. The credential never reached
+  Git history (caught by the pre-commit secret scan).
+- VM access is required before automation can be installed or activated.
 
-## Next Step
-Route the open questions in `01_REQUIREMENTS/2026-07-17__amazon_high_spend_asin_uk_stock_requirement.md` §13 (ph_task metadata, stock-freshness threshold, Git decision, KPI, skill-ZIP sign-off, and the 3 field-source decisions) to Nivarnan/Sajeesan/coordinator; proceed with build/validation for all currently-sourced fields in the interim.
+## Safety rules
 
-## Known Limitations
-- Current stock is a live snapshot, not historical stock (mandatory disclosure included in the report).
-- The two database skill ZIPs have unresolved version conflicts for files outside this requirement's scope (AMBER technical-review item); for the 3 files this requirement touches, live evidence favors `skills_minimal_pack 2 (2).zip`.
-- Git is not initialized.
-- Sessions, Page Views, Buy Box %, Conversion Rate, and Click-Through Rate have no single confidently-complete live source yet (see `07_EVIDENCE/database/2026-07-17__blue_field_source_mapping.md`) — shown as "N/A — pending source confirmation" in the v001 output.
-- Category Avg Price's averaging population (marketplace-only / account+marketplace / global) is undecided.
-- DCVoltage has no PPC/sales/listing presence in the France marketplace (confirmed zero rows) — renders as an empty combination, not an error.
-- ph_task publication is blocked pending exact metadata approval (assigned_user, team, title format, project code, version status).
+- No database credentials are to be stored in this repository or in any file under version
+  control (`.env` is git-ignored; `.env.example` contains variable names only).
+- No source files under `Sources/` are to be moved, renamed, deleted, or modified without
+  explicit approval.
+- `.mcp.json` is not to be modified as part of routine project work.
+- No database write actions without explicit approval; no table, schema, view, function, index,
+  trigger, or constraint creation.
+- No business-rule creation (e.g. thresholds) without business validation.
+- No credential exposure; no work outside the project root; no parent-AIOS promotion without
+  explicit review.
+- Automation must not be installed, enabled, or started without explicit VM-deployment approval.
+
+## Safe next step
+
+Deploy to the approved VM and enable the tested systemd timer only after (1) VM access is
+granted, (2) the deployment placeholders in
+`05_IMPLEMENTATION/deployment/systemd/anpia-daily.service` are replaced with real values, and
+(3) technical and coordinator approval is given. In parallel, route the open AMBER items above
+(credential rotation, ph_task versioning convention, daily_task mapping standardization, skill
+ZIP sign-off) to their respective owners.
