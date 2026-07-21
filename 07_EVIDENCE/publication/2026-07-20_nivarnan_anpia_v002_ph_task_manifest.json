@@ -1,0 +1,128 @@
+{
+  "requirement_id": "REQ-01-D02",
+  "requirement_cross_reference": "REQ-AMZ-NMP-001-D01",
+  "project_name": "No Moving Amazon - No-Moving Products - Issue Diagnosis & Action Report",
+  "project_code": "ANPIA",
+  "assigned_user": "Nivarnan",
+  "report_date": "2026-07-20",
+  "production_filename": "2026-07-20_nivarnan_anpia_v002.html",
+  "production_version": "v002",
+  "latest_complete_data_date": "2026-07-19",
+  "html_path": "09_OUTPUTS/html/production/2026-07-20_nivarnan_anpia_v002.html",
+  "html_byte_size": 3923170,
+  "html_sha256": "2a95437056a88bd16ffa368f8d7bbf8c6d7e9663af0cfb4376c45063ac04acc2",
+  "identity_count": 53843,
+  "duplicate_identity_count": 0,
+  "reporting_windows": {
+    "7_day": { "start": "2026-07-13", "end": "2026-07-19" },
+    "14_day": { "start": "2026-07-06", "end": "2026-07-19" },
+    "30_day": { "start": "2026-06-20", "end": "2026-07-19" }
+  },
+  "target_schema": "tech_team_outputs",
+  "target_table": "ph_task",
+  "target_row_id": 399,
+
+  "pre_publication_gate": {
+    "method": "Live re-read of row id=399 immediately before this manifest was finalized, plus a strict ANPIA+Nivarnan-only same-day duplicate check. AGE never queried.",
+    "row_399_exists": true,
+    "project_code_matches_approved": true,
+    "assigned_user_matches_approved": true,
+    "version_level_before": 1,
+    "version_status_before": "released",
+    "stored_html_octet_length_before": 3922120,
+    "stored_html_sha256_before": "4af3de8c5571073dc31de521d0d5844b91530b19c68a75ea8f27bf744d245d66",
+    "stored_html_sha256_before_matches_approved_v001": true,
+    "same_day_anpia_row_count_before": 1,
+    "second_same_day_row_exists": false,
+    "gate_result": "PASS -- all values match expected v001 state, safe to proceed to UPDATE"
+  },
+
+  "proposed_column_values": {
+    "html_content": {
+      "data_type": "text", "required": false,
+      "value": "<full v002 HTML will replace the stored value -- not printed here>",
+      "production_filename": "2026-07-20_nivarnan_anpia_v002.html",
+      "local_path": "09_OUTPUTS/html/production/2026-07-20_nivarnan_anpia_v002.html",
+      "byte_size": 3923170,
+      "sha256": "2a95437056a88bd16ffa368f8d7bbf8c6d7e9663af0cfb4376c45063ac04acc2",
+      "utf8_valid": true,
+      "source_of_truth": "Fresh live extraction + row-density UI fix, generated and validated in this task.",
+      "confidence": "HIGH", "reviewer_approval_needed": false, "action": "UPDATE"
+    },
+    "version_level": {
+      "data_type": "integer", "required": true,
+      "value": 2,
+      "source_of_truth": "User-approved same-day version rule: update existing row id=399 to v002.",
+      "confidence": "HIGH", "reviewer_approval_needed": false, "action": "UPDATE (was 1)"
+    },
+    "version_status": {
+      "data_type": "text", "required": false,
+      "value": "released",
+      "source_of_truth": "User-approved instruction (Section 9): version_status -> released (unchanged from before).",
+      "confidence": "HIGH", "reviewer_approval_needed": false, "action": "UPDATE (was released -- no change in value, but explicitly re-asserted per instruction)"
+    },
+    "description": {
+      "data_type": "text", "required": false,
+      "value": "ANPIA Amazon No-Moving Products report for LEDSONE and DCVoltage (UK, Germany, France, Italy), production v002, generated from a fresh live 30-day extraction (2026-06-20 to 2026-07-19). Replaces v001: fixed hosted-view row-density defect (row-viewport now reliably shows 15 rows vs. v001's 4-8, real-browser-verified). Calculation reconciliation: PASS (0/108 mismatches). Browser validation: PASS (0 console errors, 18/18 checks).",
+      "source_of_truth": "Summarizes this task's own validated status, per Section 9's instruction to update the production version reference and extraction window.",
+      "confidence": "HIGH", "reviewer_approval_needed": false, "action": "UPDATE"
+    },
+    "updated_at": {
+      "data_type": "timestamptz", "required": false,
+      "value": "<DB default now(), set automatically by the UPDATE>",
+      "source_of_truth": "Column default now() -- no explicit value passed; the database sets this on UPDATE.",
+      "confidence": "HIGH", "reviewer_approval_needed": false, "action": "UPDATE (automatic)"
+    }
+  },
+
+  "preserved_unchanged_columns": {
+    "project_code": "ANPIA",
+    "assigned_user": "Nivarnan",
+    "team": "Technical",
+    "developer": "Satheskanth",
+    "assigned_user_team": "ph_priors",
+    "phase_level": 1,
+    "task_name": "Amazon No-Moving Products Report — 7/14/30 Day Analysis",
+    "task_id": null,
+    "action_took_by": null,
+    "action_took_date_time": null,
+    "project_name": "No Moving Amazon - No-Moving Products - Issue Diagnosis & Action Report",
+    "created_at": "unchanged (2026-07-20T15:44:19.538101+05:30)"
+  },
+
+  "anpia_only_duplicate_check": {
+    "method": "Live SELECT scoped exclusively to project_code='ANPIA' AND assigned_user='Nivarnan'. project_code='AGE' never queried.",
+    "same_day_anpia_row_count_before_update": 1,
+    "conclusion": "Exactly one ANPIA/Nivarnan row exists (id=399). This is an UPDATE of that existing row, not a new insert -- no second row will be created."
+  },
+
+  "proposed_action": "UPDATE_EXISTING_ROW",
+  "proposed_action_confidence": "HIGH",
+  "proposed_action_rationale": "Row id=399 is the sole existing ANPIA/Nivarnan publication for this date. Per the user-approved same-day version rule, this is updated in place to v002 rather than inserting a second row.",
+
+  "one_active_row_rule": {
+    "db_enforced": false,
+    "explanation": "Enforced here by requiring the pre-publication gate to confirm exactly 1 existing row (id=399) before the UPDATE, and by using UPDATE ... WHERE id=399 (never INSERT) for this operation."
+  },
+
+  "reviewer_approval_required": false,
+  "publication_status": "PUBLISHED",
+  "publication_result": {
+    "action_performed": "UPDATE_EXISTING_ROW",
+    "row_id": 399,
+    "committed_at": "2026-07-20T16:41:25.483869+05:30",
+    "version_level_after": 2,
+    "version_status_after": "released",
+    "html_octet_length_stored": 3923170,
+    "html_sha256_stored_reverified": "2a95437056a88bd16ffa368f8d7bbf8c6d7e9663af0cfb4376c45063ac04acc2",
+    "same_day_anpia_row_count_after_commit": 1,
+    "total_ph_task_row_count_after_commit": 284,
+    "created_at_unchanged": true,
+    "no_new_row_inserted": true
+  },
+
+  "known_limitations": [
+    "No dedicated filename/path/report-date column exists in ph_task -- the v002 filename is recorded in this manifest and in description text, not in a structured ph_task column.",
+    "This manifest was validated in dry-run mode prior to execution; the actual UPDATE result is recorded separately in 07_EVIDENCE/validation/2026-07-20__anpia_v002_publication_evidence.md after execution."
+  ]
+}

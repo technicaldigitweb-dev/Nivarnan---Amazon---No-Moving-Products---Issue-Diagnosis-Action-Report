@@ -1,0 +1,81 @@
+{
+  "chromeVersion": "Chrome/150.0.7871.125",
+  "viewports": {
+    "1366x768": {
+      "consoleErrors": [],
+      "frozenAlignment": {
+        "th_asin": {
+          "left": 21,
+          "width": 115
+        },
+        "td_asin": {
+          "left": 21,
+          "width": 115
+        },
+        "th_sku": {
+          "left": 136,
+          "width": 170
+        },
+        "td_sku": {
+          "left": 136,
+          "width": 170
+        },
+        "th_title": {
+          "left": 306,
+          "width": 360
+        },
+        "td_title": {
+          "left": 306,
+          "width": 360
+        }
+      },
+      "frozenColumnsAligned": true,
+      "titleLineCounts": {
+        "buckets": {
+          "oneLineOrLess": 0,
+          "twoLine": 0,
+          "threeLineOrClamped": 50
+        },
+        "totalSampled": 50
+      },
+      "metricSortWorked": true,
+      "identityHeaderClicksNoSorting": true,
+      "accountFilterRowCount": 32274,
+      "period7RowCount": 53843,
+      "csvCheck": {
+        "hasAccount": true,
+        "hasMarketplace": true,
+        "colCount": 17
+      }
+    },
+    "1920x1080": {
+      "consoleErrors": [],
+      "frozenAlignment": {
+        "th_asin": {
+          "left": 21,
+          "width": 115
+        },
+        "td_asin": {
+          "left": 21,
+          "width": 115
+        },
+        "th_sku": {
+          "left": 136,
+          "width": 170
+        },
+        "td_sku": {
+          "left": 136,
+          "width": 170
+        },
+        "th_title": {
+          "left": 306,
+          "width": 360
+        },
+        "td_title": {
+          "left": 306,
+          "width": 360
+        }
+      }
+    }
+  }
+}

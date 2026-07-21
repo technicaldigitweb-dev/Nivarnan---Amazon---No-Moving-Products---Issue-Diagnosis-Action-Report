@@ -1,0 +1,27 @@
+[Unit]
+Description=Run ANPIA daily production report publication at 12:00 Asia/Colombo (REQ-ANPIA-REQ-01-D02)
+
+[Timer]
+# Preferred form -- explicit IANA timezone in the calendar spec. Requires
+# systemd >= 233 (2017). Verify with `systemd-analyze calendar --iterations=3
+# "*-*-* 12:00:00 Asia/Colombo"` on the target VM before enabling (see
+# check_anpia_timer.sh). If the target's systemd is too old to accept the
+# trailing timezone token, the fallback is to set
+#   Environment=TZ=Asia/Colombo
+# in anpia-daily.service instead and drop the timezone suffix here -- do
+# NOT silently assume the VM's system timezone is already Asia/Colombo.
+OnCalendar=*-*-* 12:00:00 Asia/Colombo
+
+# A run that was missed (VM was off, or systemd wasn't running) executes as
+# soon as possible after the VM recovers, rather than silently skipping an
+# entire day.
+Persistent=true
+
+# No randomization -- Section 12 requires RandomizedDelaySec=0 unless
+# explicitly approved otherwise. Not approved in this task.
+RandomizedDelaySec=0
+
+Unit=anpia-daily.service
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>__REPORT_TITLE__</title>
+<style>
+  :root { --accent:#1f3a5f; --accent-light:#2c527f; }
+  * { box-sizing: border-box; }
+  body { font-family: -apple-system, Segoe UI, Arial, Helvetica, sans-serif; margin: 0; padding: 20px; color: #1a1a1a; background: #f2f4f7; }
+  h1 { font-size: 21px; margin: 0 0 4px 0; color: var(--accent); }
+  .meta { color: #555; font-size: 13px; margin-bottom: 10px; display: flex; flex-wrap: wrap; gap: 14px; }
+  .meta span b { color: #222; }
+  .disclosure { background: #fff3cd; border: 1px solid #ffe69c; padding: 9px 14px; border-radius: 6px; font-size: 13px; margin-bottom: 10px; }
+  .sample-note { background: #d9edf7; border: 1px solid #bce8f1; padding: 9px 14px; border-radius: 6px; font-size: 13px; margin-bottom: 10px; }
+  .period-banner { background: var(--accent); color: #fff; padding: 8px 14px; border-radius: 6px; font-size: 13px; margin-bottom: 12px; display:flex; justify-content:space-between; flex-wrap:wrap; gap:6px;}
+  .summary-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px,1fr)); gap: 10px; margin-bottom: 14px; }
+  .card { background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 10px 14px; font-size: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
+  .card .label { color:#666; }
+  .card .value { display: block; font-size: 19px; font-weight: 600; color: var(--accent); margin-top: 2px; }
+  .toolbar { background:#fff; border:1px solid #ddd; border-radius:8px; padding:12px 14px; margin-bottom:12px; display:flex; gap:14px; flex-wrap:wrap; align-items:flex-end; }
+  .field { display:flex; flex-direction:column; gap:3px; font-size:12px; }
+  .field label { color:#444; font-weight:600; }
+  select, input[type=text] { padding: 6px 8px; font-size: 13px; border:1px solid #ccc; border-radius:4px; min-width: 140px; }
+  button { padding: 7px 14px; font-size: 13px; border-radius: 5px; border: 1px solid var(--accent); background: var(--accent); color:#fff; cursor:pointer; }
+  button.secondary { background:#fff; color: var(--accent); }
+  button:hover { opacity: 0.9; }
+  .table-wrap { background:#fff; border:1px solid #ddd; border-radius:8px; overflow:auto; max-height: 640px; position: relative; }
+  table { border-collapse: collapse; width: max-content; min-width: 100%; font-size: 12.5px; }
+  th, td { border-bottom: 1px solid #eee; border-right: 1px solid #eee; padding: 6px 9px; text-align: left; white-space: nowrap; }
+  th { background: var(--accent); color: #fff; cursor: pointer; position: sticky; top: 0; z-index: 3; user-select:none; }
+  th.frozen, td.frozen { position: sticky; background: #fff; z-index: 1; }
+  th.frozen { z-index: 4; background: var(--accent); }
+  td.frozen { box-shadow: 2px 0 0 rgba(0,0,0,0.04); }
+  tr:nth-child(even) td:not(.frozen) { background: #fafafa; }
+  .title-cell { max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: help; }
+  .na { color: #999; font-style: italic; }
+  .pager { margin-top: 10px; display: flex; gap: 10px; align-items: center; font-size: 13px; flex-wrap:wrap; }
+  .empty-state { padding: 30px; text-align: center; color: #777; }
+  .sort-arrow { font-size: 10px; opacity: 0.8; }
+  #loadingIndicator { display:none; padding: 6px 0; font-size:12px; color:#888; }
+</style>
+</head>
+<body>
+  <h1>__REPORT_TITLE__</h1>
+  <div class="meta">
+    <span>Generated: <b>__GENERATION_TIMESTAMP__</b></span>
+    <span>Latest complete data date: <b>__LATEST_COMPLETE_DATE__</b></span>
+    <span>Data source: <b>__DATA_SOURCE_NOTE__</b></span>
+  </div>
+
+  <div class="disclosure"><b>These stock figures are based on live data, not past records.</b></div>
+  __SAMPLE_NOTE_BLOCK__
+
+  <div class="period-banner">
+    <span>Selected period: <b id="periodBannerLabel"></b></span>
+    <span id="periodBannerRange"></span>
+  </div>
+
+  <div class="summary-cards" id="summaryCards"></div>
+
+  <div class="toolbar">
+    <div class="field">
+      <label for="accountFilter">Account</label>
+      <select id="accountFilter"><option value="">All</option>__ACCOUNT_OPTIONS__</select>
+    </div>
+    <div class="field">
+      <label for="marketplaceFilter">Marketplace</label>
+      <select id="marketplaceFilter"><option value="">All</option>__MARKETPLACE_OPTIONS__</select>
+    </div>
+    <div class="field">
+      <label for="periodFilter">Period</label>
+      <select id="periodFilter">__PERIOD_OPTIONS__</select>
+    </div>
+    <div class="field">
+      <label for="searchBox">Search (ASIN / SKU / Title)</label>
+      <input type="text" id="searchBox" placeholder="Type to search...">
+    </div>
+    <button class="secondary" id="resetFilters" type="button">Reset Filters</button>
+    <button id="downloadCsv" type="button">Download CSV</button>
+  </div>
+
+  <div id="loadingIndicator">Rendering...</div>
+  <div class="table-wrap">
+    <table id="reportTable">
+      <thead><tr id="headerRow"></tr></thead>
+      <tbody id="reportBody"></tbody>
+    </table>
+    <div id="emptyState" class="empty-state" style="display:none;">No rows match the current filters.</div>
+  </div>
+
+  <div class="pager">
+    <button class="secondary" id="prevPage" type="button">&laquo; Prev</button>
+    <span id="pageInfo"></span>
+    <button class="secondary" id="nextPage" type="button">Next &raquo;</button>
+    <label for="pageSize">Rows per page:</label>
+    <select id="pageSize">
+      <option value="25">25</option>
+      <option value="50" selected>50</option>
+      <option value="100">100</option>
+      <option value="250">250</option>
+    </select>
+  </div>
+
+<script>
+// DATASETS keyed by period string "7"/"14"/"30" -- each independently fetched,
+// NOT derived from another period's data (see 07_EVIDENCE/output/2026-07-17__report_generation_evidence_v002.md).
+const DATASETS = __DATASETS_JSON__;
+const PERIOD_RANGES = __PERIOD_RANGES_JSON__;   // {"7": {"start":"2026-07-09","end":"2026-07-15"}, ...}
+const FROZEN_COLUMNS = ["Account", "Marketplace", "Amazon ASIN", "Amazon SKU"];
+const YELLOW_FORBIDDEN = ["Category","Stock Age (Days)","Root Cause","Recommended Action","Priority","Status","Owner","Last Reviewed"];
+
+let currentPeriod = __DEFAULT_PERIOD__;
+let columns = [];
+let allRows = [];
+let filtered = [];
+let sortCol = null, sortAsc = true;
+let page = 1;
+
+function columnsForPeriod(p) {
+  return [
+    "Account","Marketplace","Amazon ASIN","Amazon SKU","Product Title",
+    "Days Since Last Sale in Amazon","Units in Stock",
+    `Sessions (${p}d)`, `Page Views (${p}d)`, `Units Ordered (${p}d)`,
+    "Conversion Rate (%)","Click-Through Rate (%)","Buy Box %",
+    "Price (£)","Category Avg Price (£)", `PPC Spend (${p}d)`, "ACOS (%)",
+  ];
+}
+
+function loadPeriod(p) {
+  currentPeriod = p;
+  columns = columnsForPeriod(p);
+  allRows = DATASETS[String(p)] || [];
+  const rng = PERIOD_RANGES[String(p)];
+  document.getElementById('periodBannerLabel').textContent = `${p} days`;
+  document.getElementById('periodBannerRange').textContent = rng ? `${rng.start} to ${rng.end}` : '';
+  renderHeader();
+  applyFilters();
+}
+
+function renderHeader() {
+  const headerRow = document.getElementById('headerRow');
+  headerRow.innerHTML = columns.map((c, idx) => {
+    const frozen = FROZEN_COLUMNS.includes(c.split(' (')[0]) || FROZEN_COLUMNS.includes(c);
+    return `<th class="${frozen ? 'frozen' : ''}" data-idx="${idx}" style="${frozen ? `left:${frozenOffset(idx)}px;` : ''}">${c}</th>`;
+  }).join('');
+  attachSortHandlers();
+}
+
+function frozenOffset(idx) {
+  // approximate left offsets for the 4 frozen columns (Account, Marketplace, ASIN, SKU)
+  const widths = [90, 100, 110, 140];
+  let offset = 0;
+  for (let i = 0; i < idx; i++) offset += widths[i] || 0;
+  return offset;
+}
+
+function attachSortHandlers() {
+  document.querySelectorAll('#headerRow th').forEach((th) => {
+    th.addEventListener('click', () => {
+      const col = columns[parseInt(th.dataset.idx, 10)];
+      if (sortCol === col) { sortAsc = !sortAsc; } else { sortCol = col; sortAsc = true; }
+      sortRows(); page = 1; render();
+    });
+  });
+}
+
+function applyFilters() {
+  const acc = document.getElementById('accountFilter').value;
+  const mkt = document.getElementById('marketplaceFilter').value;
+  const q = document.getElementById('searchBox').value.trim().toLowerCase();
+  filtered = allRows.filter(r => {
+    if (acc && r['Account'] !== acc) return false;
+    if (mkt && r['Marketplace'] !== mkt) return false;
+    if (q) {
+      const hay = (String(r['Amazon ASIN']||'') + ' ' + String(r['Amazon SKU']||'') + ' ' + String(r['Product Title']||'')).toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
+  if (sortCol) sortRows();
+  page = 1;
+  renderSummaryCards();
+  render();
+}
+
+function sortRows() {
+  filtered.sort((a,b) => {
+    let x = a[sortCol], y = b[sortCol];
+    const nx = parseFloat(String(x).replace(/[^0-9.\-]/g,''));
+    const ny = parseFloat(String(y).replace(/[^0-9.\-]/g,''));
+    let cmp;
+    if (!isNaN(nx) && !isNaN(ny)) { cmp = nx - ny; } else { cmp = String(x).localeCompare(String(y)); }
+    return sortAsc ? cmp : -cmp;
+  });
+}
+
+function renderSummaryCards() {
+  // Correct-grain summary: dedupe PPC Spend / Units Ordered at (Account,Marketplace,ASIN)
+  // grain before summing -- never sum the raw per-SKU-row displayed values directly,
+  // because a multi-SKU ASIN repeats the same PPC Spend/Units Ordered on every SKU row.
+  const seenAsinKey = new Set();
+  let totalSpend = 0, totalUnits = 0;
+  const uniqueAsins = new Set(), uniqueSkus = new Set();
+  let withStock = 0, withoutStock = 0;
+
+  filtered.forEach(r => {
+    uniqueAsins.add(r['Amazon ASIN']);
+    uniqueSkus.add(r['Amazon SKU']);
+    const stockVal = r['Units in Stock'];
+    if (typeof stockVal === 'number' && stockVal > 0) withStock++;
+    else withoutStock++;
+
+    const asinKey = r['Account'] + '|' + r['Marketplace'] + '|' + r['Amazon ASIN'];
+    if (!seenAsinKey.has(asinKey)) {
+      seenAsinKey.add(asinKey);
+      const spendKey = `PPC Spend (${currentPeriod}d)`;
+      const unitsKey = `Units Ordered (${currentPeriod}d)`;
+      const spendVal = parseFloat(String(r[spendKey]||'0').replace(/[^0-9.\-]/g,'')) || 0;
+      const unitsVal = parseFloat(String(r[unitsKey]||'0').replace(/[^0-9.\-]/g,'')) || 0;
+      totalSpend += spendVal;
+      totalUnits += unitsVal;
+    }
+  });
+
+  const cards = [
+    ['Visible Rows', filtered.length],
+    ['Unique ASINs', uniqueAsins.size],
+    ['Unique SKUs', uniqueSkus.size],
+    ['Total PPC Spend', '£' + totalSpend.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})],
+    ['Total Units Ordered', totalUnits.toLocaleString()],
+    ['Products With Current Stock', withStock],
+    ['Products Without Current Stock', withoutStock],
+  ];
+  document.getElementById('summaryCards').innerHTML = cards.map(([label, value]) =>
+    `<div class="card"><span class="label">${label}</span><span class="value">${value}</span></div>`
+  ).join('');
+}
+
+function render() {
+  const pageSize = parseInt(document.getElementById('pageSize').value, 10);
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  if (page > totalPages) page = totalPages;
+  const start = (page-1)*pageSize;
+  const pageRows = filtered.slice(start, start+pageSize);   // only current page rendered into DOM
+
+  const tbody = document.getElementById('reportBody');
+  const emptyState = document.getElementById('emptyState');
+  if (pageRows.length === 0) {
+    tbody.innerHTML = '';
+    emptyState.style.display = 'block';
+  } else {
+    emptyState.style.display = 'none';
+    tbody.innerHTML = pageRows.map(r => '<tr>' + columns.map((c, idx) => {
+      const v = r[c];
+      const frozen = FROZEN_COLUMNS.includes(c);
+      const isTitle = c === 'Product Title';
+      const cls = [
+        (typeof v === 'string' && v.indexOf('N/A') === 0) ? 'na' : '',
+        frozen ? 'frozen' : '',
+        isTitle ? 'title-cell' : '',
+      ].filter(Boolean).join(' ');
+      const style = frozen ? ` style="left:${frozenOffset(idx)}px;"` : '';
+      const title = isTitle ? ` title="${String(v||'').replace(/"/g,'&quot;')}"` : '';
+      return `<td class="${cls}"${style}${title}>${v === null || v === undefined ? '' : v}</td>`;
+    }).join('') + '</tr>').join('');
+  }
+  document.getElementById('pageInfo').textContent = `Page ${page} of ${totalPages} (${filtered.length} filtered rows)`;
+}
+
+function csvEscape(value) {
+  const s = String(value === null || value === undefined ? '' : value);
+  if (/[",\n]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
+  return s;
+}
+
+function slugify(s) {
+  return String(s || 'all').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'all';
+}
+
+function downloadCsv() {
+  const acc = document.getElementById('accountFilter').value || 'all-accounts';
+  const mkt = document.getElementById('marketplaceFilter').value || 'all-marketplaces';
+  const rows = filtered; // ALL filtered rows, not just current page
+  const header = columns.map(csvEscape).join(',');
+  const body = rows.map(r => columns.map(c => csvEscape(r[c])).join(',')).join('\r\n');
+  const csvContent = '﻿' + header + '\r\n' + body;  // UTF-8 BOM for Excel
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const today = '__GENERATION_DATE__';
+  a.href = url;
+  a.download = `${today}_${slugify(acc)}_${slugify(mkt)}_amazon_no_moving_${currentPeriod}d.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+document.getElementById('accountFilter').addEventListener('change', applyFilters);
+document.getElementById('marketplaceFilter').addEventListener('change', applyFilters);
+let searchDebounce;
+document.getElementById('searchBox').addEventListener('input', () => {
+  clearTimeout(searchDebounce);
+  searchDebounce = setTimeout(applyFilters, 150);
+});
+document.getElementById('pageSize').addEventListener('change', () => { page = 1; render(); });
+document.getElementById('prevPage').addEventListener('click', () => { if (page>1) { page--; render(); } });
+document.getElementById('nextPage').addEventListener('click', () => { page++; render(); });
+document.getElementById('resetFilters').addEventListener('click', () => {
+  document.getElementById('accountFilter').value = '';
+  document.getElementById('marketplaceFilter').value = '';
+  document.getElementById('searchBox').value = '';
+  sortCol = null; sortAsc = true;
+  applyFilters();
+});
+document.getElementById('downloadCsv').addEventListener('click', downloadCsv);
+document.getElementById('periodFilter').addEventListener('change', (e) => {
+  loadPeriod(e.target.value);
+});
+
+loadPeriod(String(currentPeriod));
+</script>
+</body>
+</html>

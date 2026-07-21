@@ -1,0 +1,52 @@
+{
+  "requirement_id": "REQ-01",
+  "deliverable_id": "D02",
+  "work_date": "2026-07-20",
+  "target_schema": "daily_task",
+  "target_table": "tbl_anpia_satheskanth",
+  "unique_constraint_columns": ["work_date", "developer", "project_code", "requirement_id"],
+  "unique_constraint_name": "uq_anpia_sath_daily_identity",
+  "note_deliverable_id_not_in_unique_key": "deliverable_id is NOT part of the live UNIQUE constraint -- confirmed via pg_constraint. Duplicate/action classification is correctly scoped to work_date+developer+project_code+requirement_id only.",
+
+  "identity_mapping_notes": {
+    "developer_casing": "Approved value 'Satheskanth' used as explicitly instructed. The one existing precedent row (id=1, 2026-07-17) stored lowercase 'satheskanth' -- disclosed inconsistency, not silently normalized either direction.",
+    "deliverable_id_format": "Approved value 'D02' used as explicitly instructed. The precedent row stored the combined form 'REQ-01-D01' rather than just 'D01' -- disclosed format inconsistency, not silently resolved.",
+    "aios_phase_mapping": "Approved value 'IMPLEMENTATION / PRODUCTION DELIVERY' does not fit the live CHECK constraint (DISCOVERY|BUILD|TEST|REVIEW|DEPLOY). Mapped to 'DEPLOY' as the closest fit given today's outcome was production publication -- disclosed as a required mapping decision, not an exact match.",
+    "status_mapping": "Approved 'system_build_status = COMPLETED' mapped to the live CHECK-constrained value 'COMPLETE' (exact enum spelling).",
+    "no_dedicated_column_for": [
+      "business owner / assigned user (Nivarnan) -- folded into task_summary text",
+      "benefit-delivered flag -- folded into task_summary text as 'Benefit Status: PASS'",
+      "GitHub path or commit -- not applicable, this project has no git repository",
+      "next step -- folded into decisions_made text",
+      "a distinct pass/fail result field -- represented via status='COMPLETE' plus the benefit statement in task_summary; these are disclosed as different concepts, not conflated"
+    ]
+  },
+
+  "proposed_column_values": {
+    "developer": "Satheskanth",
+    "project_name": "No Moving Amazon - No-Moving Products - Issue Diagnosis & Action Report",
+    "project_code": "ANPIA",
+    "domain": "Amazon Advertising / Inventory / Ecommerce Operations",
+    "aios_phase": "DEPLOY",
+    "requirement_id": "REQ-01",
+    "deliverable_id": "D02",
+    "module": null,
+    "status": "COMPLETE",
+    "task_title": "ANPIA Production Report, Publication and Daily Automation Build",
+    "task_summary": "Completed the ANPIA Amazon No-Moving Products production reporting system for business owner Nivarnan. Generated and validated the final v002 self-contained HTML report using fresh live data, retained 53,843 unique identities with zero duplicate identities, and passed independent calculation reconciliation with zero mismatches (0/108). Published v002 by updating the existing tech_team_outputs.ph_task row id=399 (version_level 1 -> 2, version_status released) while maintaining exactly one same-day ANPIA row before and after the write. Built the reusable manual 'update to table' pipeline (anpia_daily_pipeline.py, update_to_table.py, SKILL.md) and prepared the daily 12:00 PM Asia/Colombo systemd/cron deployment package. Scheduling was intentionally not activated because a VM deployment is still required. Benefit Status: PASS. Benefit delivered: YES. System build status: COMPLETED.",
+    "work_performed": "1) Preserved v001 unchanged (checksum re-verified) while building v002 from a genuinely fresh, independent 30-day live extraction (not reused from v001). 2) Diagnosed the user-reported hosted-view row-density defect by real-browser measurement of v001 (4-8 rows depending on viewport, matching the reported '~5 rows'), then fixed it via a new template (amazon_no_moving_report_template_v008.html) using tightened spacing (no font-size reduction) and a height:clamp() table-wrap rule -- real-browser-verified to show 15 rows at every tested viewport. 3) Ran 18/18 browser validation checks (0 console errors, 0 network requests) and independent calculation reconciliation (0/108 mismatches). 4) Ran a pre-publication gate re-reading ph_task row 399 live, then extended publish_ph_task_production_report.py with a new, adversarially-gate-tested UPDATE_EXISTING_ROW path and executed it -- row 399 updated to v002, independently re-verified post-commit (stored checksum match, same-day row count still 1, total row count unchanged confirming an UPDATE not an INSERT). 5) Built anpia_daily_pipeline.py (16-step, lock-protected, safety-gated) and update_to_table.py + SKILL.md, both real-dry-run-tested successfully against live data. 6) Built the full systemd/cron deployment package (service, timer, install/remove/check scripts, README) -- explicitly not installed, enabled, or started anywhere.",
+    "files_modified": "09_OUTPUTS/html/production/2026-07-20_nivarnan_anpia_v002.html ; 05_IMPLEMENTATION/templates/amazon_no_moving_report_template_v008.html ; 05_IMPLEMENTATION/publish_ph_task_production_report.py (extended for UPDATE support) ; 05_IMPLEMENTATION/anpia_daily_pipeline.py ; 05_IMPLEMENTATION/update_to_table.py ; 08_SKILLS/anpia-update-to-table/SKILL.md ; 05_IMPLEMENTATION/deployment/* (service, timer, install/remove/check scripts, cron example, README) ; 08_SKILLS/Daily Skills/2026-07-20__satheskanth__anpia__REQ-01-D02.md ; 08_SKILLS/Daily Skills/2026-07-20_anpia_daily_summary.md",
+    "gaps_found": "Real hosted-modal dimensions remain unconfirmed -- no screenshot was ever actually attached to the defect report despite it being referenced; the 15-row fix rests on a disclosed, calibrated simulation, not a direct measurement of the real hosted tool. A genuine conflict was found between today's row-399 update-in-place approach and the documented company default in 08_SKILLS/ph_task_reference/ph_task_versioning_rules.md (insert-new + reject-old) -- needs a decision from whoever owns that convention. Future VM deployment placeholders (user, paths, env file location) and systemd-analyze verification remain open until a real target VM is available.",
+    "decisions_made": "Updated ph_task row 399 in place rather than insert-and-reject, per explicit repeated business/technical-owner instruction to maintain exactly one active row. Fixed row-density via spacing only, never font-size, per explicit instruction. Disclosed the missing defect screenshot honestly rather than fabricating visual details. Next step: confirm with Nivarnan that the hosted view now looks acceptable, and route the ph_task versioning-convention conflict to whoever owns that dashboard rule for a decision.",
+    "company_knowledge": "Real-browser row-density tuning pattern (measure actual row/header height in real Chrome via CDP, compute floor = target_rows * row_height + header + scrollbar_allowance, apply via height:clamp()) is reusable for any dense HTML table in a constrained host viewport. Manifest-checksum-plus-confirmation-token double-gating pattern for any ph_task-style publication write is reusable beyond ANPIA. The ph_task insert-vs-update-in-place versioning question applies to any project writing multiple versions into tech_team_outputs.ph_task.",
+    "validation_rules": "UPDATE-path row-identity triple-check: a live UPDATE_EXISTING_ROW action is only permitted when the manifest's declared target_row_id, a live re-query finding exactly one matching row with that id, and the operator's --expected-action flag all agree -- tested live with a deliberately wrong target_row_id (correctly blocked).",
+    "failure_modes": "If the real hosted tool's available height differs meaningfully from the disclosed 850px/700px simulation used today, the row-density fix may show fewer than 15 rows in practice. Risk level LOW -- retunable via the exact same real-browser measurement methodology already documented, and the fix is a large, real improvement (4-8 rows -> 15 rows) regardless of the exact real container size.",
+    "blos_keys_used": "NONE USED",
+    "hardcoded_thresholds": "Disclosed implementation constants, not business thresholds: 50,000,000-byte HTML sanity ceiling in the publish scripts; 984px table-wrap floor and 373px calc() budget in the v008 template's row-density CSS (both real-browser-measured, not invented).",
+    "three_am_standard": true,
+    "llm_queryable": true,
+    "company_knowledge_candidate": true,
+    "evidence_location": "07_EVIDENCE/publication/2026-07-20_nivarnan_anpia_v002_ph_task_manifest.json ; 07_EVIDENCE/validation/2026-07-20__anpia_v002_publication_evidence.md ; 07_EVIDENCE/validation/2026-07-20__anpia_automation_dry_run_evidence.md ; 07_EVIDENCE/validation/2026-07-20__anpia_update_to_table_command_evidence.md ; 06_VALIDATION/2026-07-20__anpia_v002_ui_validation.md ; 06_VALIDATION/2026-07-20__anpia_v002_calculation_validation.md ; 07_EVIDENCE/screenshots/production/2026-07-20_nivarnan_anpia_v002/",
+    "skill_file_path": "08_SKILLS/Daily Skills/2026-07-20__satheskanth__anpia__REQ-01-D02.md\n08_SKILLS/Daily Skills/2026-07-20_anpia_daily_summary.md"
+  }
+}

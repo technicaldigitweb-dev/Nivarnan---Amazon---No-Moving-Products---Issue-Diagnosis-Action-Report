@@ -1,0 +1,54 @@
+{
+  "chromeVersion": "Chrome/150.0.7871.125",
+  "hostedSimulationHeightAssumption": 850,
+  "viewports": {
+    "direct_1920x1080": {
+      "consoleErrors": [],
+      "visibleRows": 15
+    },
+    "hosted_1920x850": {
+      "visibleRows": 15,
+      "consoleErrors": []
+    },
+    "direct_1366x768": {
+      "visibleRows": 15,
+      "consoleErrors": []
+    },
+    "hosted_1366x700": {
+      "visibleRows": 15,
+      "consoleErrors": []
+    }
+  },
+  "interactionChecks": {
+    "frozenAligned": true,
+    "combinedAligned": true,
+    "titleLineCounts": {
+      "buckets": {
+        "oneLineOrLess": 0,
+        "twoLine": 0,
+        "threeLineOrClamped": 50
+      },
+      "totalSampled": 50
+    },
+    "accountFilterRows": 32274,
+    "period7Rows": 53843,
+    "period7Range": "2026-07-13 to 2026-07-19",
+    "searchRows": 27737,
+    "metricSortWorked": true,
+    "identityHeaderNoSort": true,
+    "pagination": {
+      "before": "Page 1 of 1077 (53843 filtered rows)",
+      "after": "Page 2 of 1077 (53843 filtered rows)"
+    },
+    "csvCheck": {
+      "hasAccount": true,
+      "hasMarketplace": true,
+      "colCount": 17
+    },
+    "formulaPresent": true,
+    "formulaCollapsedByDefault": true,
+    "finalConsoleErrors": []
+  },
+  "networkRequestCount": 0,
+  "networkRequests": []
+}

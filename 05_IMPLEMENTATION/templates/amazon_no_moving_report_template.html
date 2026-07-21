@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>__REPORT_TITLE__</title>
+<style>
+  body { font-family: Arial, Helvetica, sans-serif; margin: 0; padding: 16px; color: #1a1a1a; background: #fafafa; }
+  h1 { font-size: 20px; margin-bottom: 4px; }
+  .meta { color: #555; font-size: 13px; margin-bottom: 12px; }
+  .disclosure { background: #fff3cd; border: 1px solid #ffe69c; padding: 8px 12px; border-radius: 4px; font-size: 13px; margin-bottom: 12px; }
+  .sample-note { background: #d9edf7; border: 1px solid #bce8f1; padding: 8px 12px; border-radius: 4px; font-size: 13px; margin-bottom: 12px; }
+  .controls { margin-bottom: 12px; display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+  .controls label { font-size: 13px; margin-right: 4px; }
+  select, input[type=text] { padding: 4px 6px; font-size: 13px; }
+  table { border-collapse: collapse; width: 100%; font-size: 12px; background: #fff; }
+  th, td { border: 1px solid #ddd; padding: 5px 7px; text-align: left; white-space: nowrap; }
+  th { background: #1f3a5f; color: #fff; cursor: pointer; position: sticky; top: 0; }
+  tr:nth-child(even) { background: #f6f6f6; }
+  .na { color: #999; font-style: italic; }
+  .pager { margin-top: 10px; display: flex; gap: 8px; align-items: center; font-size: 13px; }
+  .pager button { padding: 4px 10px; cursor: pointer; }
+  .empty-state { padding: 24px; text-align: center; color: #777; }
+  .summary-cards { display: flex; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+  .card { background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 8px 14px; font-size: 13px; }
+  .card b { display: block; font-size: 16px; }
+</style>
+</head>
+<body>
+  <h1>__REPORT_TITLE__</h1>
+  <div class="meta">Generated: __GENERATION_TIMESTAMP__ &middot; Data source: __DATA_SOURCE_NOTE__ &middot; Period window: __PERIOD_WINDOW_NOTE__</div>
+
+  <div class="disclosure"><b>These stock figures are based on live data, not past records.</b></div>
+  __SAMPLE_NOTE_BLOCK__
+
+  <div class="summary-cards">
+    __SUMMARY_CARDS__
+  </div>
+
+  <div class="controls">
+    <label for="accountFilter">Account:</label>
+    <select id="accountFilter"><option value="">All</option>__ACCOUNT_OPTIONS__</select>
+
+    <label for="marketplaceFilter">Marketplace:</label>
+    <select id="marketplaceFilter"><option value="">All</option>__MARKETPLACE_OPTIONS__</select>
+
+    <label for="periodFilter">Period:</label>
+    <select id="periodFilter">__PERIOD_OPTIONS__</select>
+
+    <label for="searchBox">Search:</label>
+    <input type="text" id="searchBox" placeholder="ASIN, SKU, or title...">
+  </div>
+
+  <div id="tableWrap">
+    <table id="reportTable">
+      <thead><tr>__TABLE_HEADERS__</tr></thead>
+      <tbody id="reportBody">__TABLE_ROWS__</tbody>
+    </table>
+    <div id="emptyState" class="empty-state" style="display:none;">No rows match the current filters.</div>
+  </div>
+
+  <div class="pager">
+    <button id="prevPage">&laquo; Prev</button>
+    <span id="pageInfo"></span>
+    <button id="nextPage">Next &raquo;</button>
+    <label for="pageSize">Rows per page:</label>
+    <select id="pageSize">
+      <option value="25">25</option>
+      <option value="50" selected>50</option>
+      <option value="100">100</option>
+      <option value="250">250</option>
+    </select>
+  </div>
+
+<script>
+const ALL_ROWS = __ROW_DATA_JSON__;
+const COLUMNS = __COLUMN_LIST_JSON__;
+
+let filtered = ALL_ROWS.slice();
+let sortCol = null, sortAsc = true;
+let page = 1;
+
+function applyFilters() {
+  const acc = document.getElementById('accountFilter').value;
+  const mkt = document.getElementById('marketplaceFilter').value;
+  const q = document.getElementById('searchBox').value.trim().toLowerCase();
+  filtered = ALL_ROWS.filter(r => {
+    if (acc && r['Account'] !== acc) return false;
+    if (mkt && r['Marketplace'] !== mkt) return false;
+    if (q) {
+      const hay = (String(r['Amazon ASIN']||'') + ' ' + String(r['Amazon SKU']||'') + ' ' + String(r['Product Title']||'')).toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
+  if (sortCol) sortRows();
+  page = 1;
+  render();
+}
+
+function sortRows() {
+  filtered.sort((a,b) => {
+    let x = a[sortCol], y = b[sortCol];
+    const nx = parseFloat(String(x).replace(/[^0-9.\-]/g,''));
+    const ny = parseFloat(String(y).replace(/[^0-9.\-]/g,''));
+    let cmp;
+    if (!isNaN(nx) && !isNaN(ny)) { cmp = nx - ny; }
+    else { cmp = String(x).localeCompare(String(y)); }
+    return sortAsc ? cmp : -cmp;
+  });
+}
+
+function render() {
+  const pageSize = parseInt(document.getElementById('pageSize').value, 10);
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  if (page > totalPages) page = totalPages;
+  const start = (page-1)*pageSize;
+  const pageRows = filtered.slice(start, start+pageSize);
+
+  const tbody = document.getElementById('reportBody');
+  const emptyState = document.getElementById('emptyState');
+  if (pageRows.length === 0) {
+    tbody.innerHTML = '';
+    emptyState.style.display = 'block';
+  } else {
+    emptyState.style.display = 'none';
+    tbody.innerHTML = pageRows.map(r => '<tr>' + COLUMNS.map(c => {
+      const v = r[c];
+      const cls = (typeof v === 'string' && v.indexOf('N/A') === 0) ? ' class="na"' : '';
+      return '<td' + cls + '>' + (v === null || v === undefined ? '' : v) + '</td>';
+    }).join('') + '</tr>').join('');
+  }
+  document.getElementById('pageInfo').textContent = `Page ${page} of ${totalPages} (${filtered.length} rows)`;
+}
+
+document.getElementById('accountFilter').addEventListener('change', applyFilters);
+document.getElementById('marketplaceFilter').addEventListener('change', applyFilters);
+document.getElementById('searchBox').addEventListener('input', applyFilters);
+document.getElementById('pageSize').addEventListener('change', () => { page = 1; render(); });
+document.getElementById('prevPage').addEventListener('click', () => { if (page>1) { page--; render(); } });
+document.getElementById('nextPage').addEventListener('click', () => { page++; render(); });
+document.getElementById('periodFilter').addEventListener('change', function() {
+  alert('This static report was generated for a single period window (see meta line above). ' +
+        'Selecting a different period requires a fresh report run against that period -- ' +
+        'this control does not re-query the database from this static file.');
+});
+document.querySelectorAll('#reportTable th').forEach((th, idx) => {
+  th.addEventListener('click', () => {
+    const col = COLUMNS[idx];
+    if (sortCol === col) { sortAsc = !sortAsc; } else { sortCol = col; sortAsc = true; }
+    sortRows(); page = 1; render();
+  });
+});
+
+render();
+</script>
+</body>
+</html>

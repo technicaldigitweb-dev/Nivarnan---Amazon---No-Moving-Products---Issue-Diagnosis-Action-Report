@@ -1,0 +1,195 @@
+{
+  "requirement_id": "REQ-01-D02",
+  "requirement_cross_reference": "REQ-AMZ-NMP-001-D01",
+  "project_name": "No Moving Amazon - No-Moving Products - Issue Diagnosis & Action Report",
+  "project_code": "ANPIA",
+  "assigned_user": "Nivarnan",
+  "identity_rule_note": "project_code AGE belongs to unrelated work and was excluded from every decision in this manifest -- see 03_DISCOVERY/2026-07-20__anpia_production_ph_task_live_verification.md section 0 for scope discipline.",
+  "report_date": "2026-07-20",
+  "production_filename": "2026-07-20_nivarnan_anpia_v001.html",
+  "production_version": "v001",
+  "latest_complete_data_date": "2026-07-19",
+  "html_path": "09_OUTPUTS/html/production/2026-07-20_nivarnan_anpia_v001.html",
+  "html_byte_size": 3922120,
+  "html_sha256": "4af3de8c5571073dc31de521d0d5844b91530b19c68a75ea8f27bf744d245d66",
+  "identity_count": 53843,
+  "duplicate_identity_count": 0,
+  "reporting_windows": {
+    "7_day": { "start": "2026-07-13", "end": "2026-07-19" },
+    "14_day": { "start": "2026-07-06", "end": "2026-07-19" },
+    "30_day": { "start": "2026-06-20", "end": "2026-07-19" }
+  },
+  "target_schema": "tech_team_outputs",
+  "target_table": "ph_task",
+
+  "proposed_column_values": {
+    "project_name": {
+      "data_type": "text", "required": true,
+      "value": "No Moving Amazon - No-Moving Products - Issue Diagnosis & Action Report",
+      "source_of_truth": "Approved project instruction / active requirement document",
+      "confidence": "HIGH", "reviewer_approval_needed": false,
+      "notes": "NOT NULL column."
+    },
+    "project_code": {
+      "data_type": "text", "required": true,
+      "value": "ANPIA",
+      "source_of_truth": "Explicitly approved by user in this task's instructions.",
+      "confidence": "HIGH", "reviewer_approval_needed": false,
+      "notes": "NOT NULL column. Confirmed 0 existing rows for this project_code (exact and case-insensitive)."
+    },
+    "task_name": {
+      "data_type": "text", "required": true,
+      "value": "Amazon No-Moving Products Report — 7/14/30 Day Analysis",
+      "source_of_truth": "User-approved value, provided explicitly in the publication-approval instruction.",
+      "confidence": "HIGH", "reviewer_approval_needed": false,
+      "notes": "APPROVED (supersedes the earlier LOW-confidence proposal 'Amazon No-Moving Products Report -- LEDSONE & DCVoltage (Production v001)')."
+    },
+    "task_id": {
+      "data_type": "text", "required": false,
+      "value": null,
+      "source_of_truth": "UNCONFIRMED -- no ANPIA row exists to establish a task_id pattern, and the only other observed pattern (UAWSO-style) came from a different project and was not re-used here since it is not an ANPIA precedent. AGE-project task_id patterns were excluded from consideration per instruction.",
+      "confidence": "NONE", "reviewer_approval_needed": true,
+      "notes": "Nullable column. Left null rather than inventing a pattern. No UNIQUE constraint exists on this column (confirmed live), so it cannot be relied on for de-duplication regardless."
+    },
+    "team": {
+      "data_type": "text", "required": false,
+      "value": "Technical",
+      "source_of_truth": "User-approved value, provided explicitly in the publication-approval instruction.",
+      "confidence": "HIGH", "reviewer_approval_needed": false,
+      "notes": "APPROVED."
+    },
+    "developer": {
+      "data_type": "text", "required": false,
+      "value": "Satheskanth",
+      "source_of_truth": "User-approved value, provided explicitly in the publication-approval instruction.",
+      "confidence": "HIGH", "reviewer_approval_needed": false,
+      "notes": "APPROVED."
+    },
+    "assigned_user": {
+      "data_type": "text", "required": false,
+      "value": "Nivarnan",
+      "source_of_truth": "Explicitly approved by user in this task's instructions.",
+      "confidence": "HIGH", "reviewer_approval_needed": false,
+      "notes": "Exact capitalization not confirmed against any live ANPIA row (none exist) -- used exactly as given in the approved instruction."
+    },
+    "assigned_user_team": {
+      "data_type": "text", "required": false,
+      "value": "ph_priors",
+      "source_of_truth": "User-approved value, provided explicitly in the publication-approval instruction.",
+      "confidence": "HIGH", "reviewer_approval_needed": false,
+      "notes": "APPROVED. Matches the dominant live convention (ph_priors) and is one of the two documented valid values."
+    },
+    "html_content": {
+      "data_type": "text", "required": false,
+      "value": "<full HTML will be stored -- not printed here>",
+      "production_filename": "2026-07-20_nivarnan_anpia_v001.html",
+      "local_path": "09_OUTPUTS/html/production/2026-07-20_nivarnan_anpia_v001.html",
+      "byte_size": 3922120,
+      "sha256": "4af3de8c5571073dc31de521d0d5844b91530b19c68a75ea8f27bf744d245d66",
+      "utf8_valid": true,
+      "source_of_truth": "Fresh live extraction, generated and validated in this task (see 06_VALIDATION/2026-07-20__anpia_production_live_data_validation.md).",
+      "confidence": "HIGH", "reviewer_approval_needed": false,
+      "notes": "Nullable column. Full HTML content deliberately not embedded in this manifest."
+    },
+    "description": {
+      "data_type": "text", "required": false,
+      "value": "ANPIA Amazon No-Moving Products report for LEDSONE and DCVoltage (UK, Germany, France, Italy), production v001, generated from a fresh live 30-day extraction (2026-06-20 to 2026-07-19). Calculation reconciliation: PASS (0/108 mismatches, see evidence doc). Browser validation: PASS (0 console errors, both required viewports).",
+      "source_of_truth": "Summarizes this task's own validated status -- free-text field, no live ANPIA convention to match against.",
+      "confidence": "HIGH", "reviewer_approval_needed": false,
+      "notes": "APPROVED (stale 'AWAITING USER COLUMN CONFIRMATION' phrase removed now that publication is approved)."
+    },
+    "phase_level": {
+      "data_type": "integer", "required": true,
+      "value": 1,
+      "source_of_truth": "User-approved value, provided explicitly in the publication-approval instruction.",
+      "confidence": "HIGH", "reviewer_approval_needed": false,
+      "notes": "APPROVED."
+    },
+    "version_level": {
+      "data_type": "integer", "required": true,
+      "value": 1,
+      "source_of_truth": "User-approved value ('version_level = v001' in the approval instruction, mapped to the integer column as 1 -- 'v001' is the production filename version tag, not a literal string value for this integer column).",
+      "confidence": "HIGH", "reviewer_approval_needed": false,
+      "notes": "APPROVED. NOT NULL integer column -- 1, matching the production filename's v001."
+    },
+    "version_status": {
+      "data_type": "text", "required": false,
+      "value": "released",
+      "source_of_truth": "User-approved value, provided explicitly in the publication-approval instruction. This resolves the previously BLOCKED open question -- 'released' is one of the three schema-documented valid values (released, completed, rejected).",
+      "confidence": "HIGH", "reviewer_approval_needed": false,
+      "notes": "APPROVED."
+    },
+    "action_took_by": {
+      "data_type": "text", "required": false,
+      "value": null,
+      "source_of_truth": "Column comment: 'End user who completed the requested action (NULL until done).' Not set by the publisher -- populated later by the hosted tool when the end user acts.",
+      "confidence": "HIGH", "reviewer_approval_needed": false,
+      "notes": "Correctly null at insert time by design, not an oversight."
+    },
+    "action_took_date_time": {
+      "data_type": "timestamptz", "required": false,
+      "value": null,
+      "source_of_truth": "Column comment: 'Timestamp when the action was completed (NULL until done).' Not set by the publisher.",
+      "confidence": "HIGH", "reviewer_approval_needed": false,
+      "notes": "Correctly null at insert time by design, not an oversight."
+    },
+    "created_at": {
+      "data_type": "timestamptz", "required": false,
+      "value": "<DB default now()>",
+      "source_of_truth": "Column default now().",
+      "confidence": "HIGH", "reviewer_approval_needed": false,
+      "notes": "Not explicitly set by the publisher -- DB default applies."
+    },
+    "updated_at": {
+      "data_type": "timestamptz", "required": false,
+      "value": "<DB default now()>",
+      "source_of_truth": "Column default now().",
+      "confidence": "HIGH", "reviewer_approval_needed": false,
+      "notes": "Not explicitly set by the publisher -- DB default applies."
+    }
+  },
+  "omitted_nonexistent_columns": [
+    "pass_fail -- searched for live via information_schema.columns; does not exist in tech_team_outputs.ph_task. Not included in the proposed value map per this task's instruction to use only columns that actually exist."
+  ],
+
+  "anpia_only_duplicate_check": {
+    "method": "Live SELECT on tech_team_outputs.ph_task, scoped exclusively to project_code = 'ANPIA' (exact and case-insensitive) and project_code='ANPIA' AND assigned_user='Nivarnan'. project_code = 'AGE' was never queried in this task.",
+    "project_code_anpia_exact_match_count": 0,
+    "project_code_anpia_case_insensitive_count": 0,
+    "project_code_anpia_and_assigned_user_nivarnan_count": 0,
+    "conclusion": "No ANPIA row of any kind exists. There is no same-day row, no prior version, and nothing to update or replace."
+  },
+
+  "proposed_action": "SAFE_NEW_INSERT",
+  "proposed_action_confidence": "HIGH",
+  "proposed_action_rationale": "Zero ANPIA rows exist under any query scoped to project_code='ANPIA', with or without the assigned_user filter. This is an unambiguous new-insert case -- not a same-day update/replace scenario. (The earlier ambiguity encountered in a prior task run, caused by comparing against an unrelated AGE-project row, does not apply here: this task's instructions explicitly established that AGE belongs to different work and must be excluded from every decision.)",
+
+  "one_active_row_rule": {
+    "db_enforced": false,
+    "explanation": "ph_task has no boolean 'active' column and no unique constraint that would enforce a single active row per project_code+assigned_user+date at the database level. 'One active same-day ANPIA publication' is a process convention that must be enforced by the publishing script's own duplicate check (see 05_IMPLEMENTATION/publish_ph_task_production_report.py) and by human review, not by the schema."
+  },
+
+  "reviewer_approval_required": false,
+  "reviewer_open_questions": [],
+  "approval_record": {
+    "approved_by": "User (Nivarnan/report owner, via explicit chat instruction)",
+    "approval_scope": "All proposed ph_task publication column values -- task_name, task_id, team, developer, phase_level, assigned_user_team, version_level, version_status.",
+    "note": "All previously LOW/MEDIUM/NONE-confidence fields were updated to the user-approved values above and marked HIGH confidence / reviewer_approval_needed=false. This manifest edit was made immediately prior to computing the --approved-manifest-sha256 used to authorize execution, per the user's own explicit execution instruction ('Calculate the live SHA-256 of the manifest')."
+  },
+
+  "publication_status": "PUBLISHED",
+  "publication_result": {
+    "inserted_id": 399,
+    "committed_at": "2026-07-20T15:44:19.538101+05:30",
+    "html_octet_length_stored": 3922120,
+    "html_sha256_stored_reverified": "4af3de8c5571073dc31de521d0d5844b91530b19c68a75ea8f27bf744d245d66",
+    "same_day_anpia_row_count_after_commit": 1,
+    "total_ph_task_row_count_after_commit": 284
+  },
+
+  "known_limitations": [
+    "No dedicated report-date, filename, or path column exists in ph_task -- the production filename and report date are not stored in any structured column. If needed for downstream tracking, they must be included in task_name/task_id/description text.",
+    "task_id uniqueness is not database-enforced (no UNIQUE constraint live) -- even if a task_id is assigned later, it cannot be relied on alone for de-duplication. task_id remains NULL for this row per the approved instruction.",
+    "'One active same-day ANPIA publication' is a process rule, not a database constraint -- enforced by the publishing script's live duplicate check and by this approval, not by the schema."
+  ]
+}

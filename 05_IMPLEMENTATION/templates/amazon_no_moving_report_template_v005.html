@@ -1,0 +1,513 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>__REPORT_TITLE__</title>
+<style>
+  :root {
+    --accent:#1f3a5f; --accent-light:#2c527f;
+    --w-asin: 115px; --w-sku: 170px;
+    --left-asin: 0px;
+    --left-sku: 115px;   /* = --w-asin */
+  }
+  * { box-sizing: border-box; }
+  body { font-family: -apple-system, Segoe UI, Arial, Helvetica, sans-serif; margin: 0; padding: 20px; color: #1a1a1a; background: #f2f4f7; }
+  h1 { font-size: 21px; margin: 0 0 4px 0; color: var(--accent); }
+  .meta { color: #555; font-size: 13px; margin-bottom: 10px; display: flex; flex-wrap: wrap; gap: 14px; }
+  .meta span b { color: #222; }
+  .disclosure { background: #fff3cd; border: 1px solid #ffe69c; padding: 9px 14px; border-radius: 6px; font-size: 13px; margin-bottom: 10px; }
+  .period-banner { background: var(--accent); color: #fff; padding: 8px 14px; border-radius: 6px; font-size: 13px; margin-bottom: 12px; display:flex; justify-content:space-between; flex-wrap:wrap; gap:6px;}
+  .summary-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px,1fr)); gap: 10px; margin-bottom: 10px; }
+  .card { background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 10px 14px; font-size: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
+  .card .label { color:#666; }
+  .card .value { display: block; font-size: 19px; font-weight: 600; color: var(--accent); margin-top: 2px; }
+  .dq-panel { background:#fff; border:1px solid #ddd; border-radius:8px; padding:10px 14px; margin-bottom:12px; font-size:12.5px; }
+  .dq-panel .dq-title { font-weight:600; color: var(--accent); margin-bottom:6px; }
+  .dq-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(180px,1fr)); gap:6px 16px; }
+  .dq-warning { background:#fdeaea; border:1px solid #f3b8b8; border-radius:6px; padding:8px 12px; margin-top:8px; font-size:12.5px; color:#7a1f1f; }
+  .toolbar { background:#fff; border:1px solid #ddd; border-radius:8px; padding:12px 14px; margin-bottom:12px; display:flex; gap:14px; flex-wrap:wrap; align-items:flex-end; }
+  .field { display:flex; flex-direction:column; gap:3px; font-size:12px; }
+  .field label { color:#444; font-weight:600; }
+  select, input[type=text] { padding: 6px 8px; font-size: 13px; border:1px solid #ccc; border-radius:4px; min-width: 140px; }
+  button { padding: 7px 14px; font-size: 13px; border-radius: 5px; border: 1px solid var(--accent); background: var(--accent); color:#fff; cursor:pointer; }
+  button.secondary { background:#fff; color: var(--accent); }
+  button:hover { opacity: 0.9; }
+  .table-wrap { background:#fff; border:1px solid #ddd; border-radius:8px; overflow:auto; max-height: 640px; position: relative; }
+  table { border-collapse: separate; border-spacing: 0; width: max-content; min-width: 100%; font-size: 12.5px; }
+  th, td { border-bottom: 1px solid #eee; border-right: 1px solid #eee; padding: 6px 9px; text-align: left; white-space: nowrap; }
+  th { background: var(--accent); color: #fff; cursor: pointer; position: sticky; top: 0; z-index: 5; user-select:none; }
+
+  th.col-asin, td.col-asin { position: sticky; left: var(--left-asin); width: var(--w-asin); min-width: var(--w-asin); max-width: var(--w-asin); background:#fff; z-index: 3; }
+  th.col-sku, td.col-sku { position: sticky; left: var(--left-sku); width: var(--w-sku); min-width: var(--w-sku); max-width: var(--w-sku); background:#fff; z-index: 3;
+    border-right: 3px solid var(--accent-light); }
+  th.col-asin, th.col-sku { background: var(--accent); z-index: 6; }
+  tr:nth-child(even) td.col-asin, tr:nth-child(even) td.col-sku { background: #fafafa; }
+
+  .title-cell { max-width: 360px; min-width: 240px; white-space: normal; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; text-overflow: ellipsis; vertical-align: top; cursor: help; }
+
+  .col-group-sep { border-left: 2px solid #d8dee8; }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; width: 120px; min-width: 110px; max-width: 140px; }
+  td.na { color: #9a6b00; font-style: italic; background: #fff9ec; }
+  td.zero-real { color: #555; }
+  tr:nth-child(even) td:not(.col-asin):not(.col-sku) { background: #fafafa; }
+
+  .pager { margin-top: 10px; display: flex; gap: 10px; align-items: center; font-size: 13px; flex-wrap:wrap; }
+  .empty-state { padding: 30px; text-align: center; color: #777; }
+  #loadingIndicator { padding: 40px; text-align: center; font-size: 14px; color: #555; }
+  #loadingIndicator .spinner { display:inline-block; width:18px; height:18px; border:3px solid #ccc; border-top-color: var(--accent); border-radius:50%; animation: spin 0.8s linear infinite; margin-right:8px; vertical-align:middle; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  #errorBanner { display:none; background:#fdeaea; border:1px solid #f3b8b8; color:#7a1f1f; padding:12px 16px; border-radius:8px; margin-bottom:12px; font-size:13.5px; }
+  #appBody { display:none; }
+
+  details.formula-section { background:#fff; border:1px solid #ddd; border-radius:8px; padding:10px 16px; margin-top: 16px; font-size: 12.5px; }
+  details.formula-section summary { cursor:pointer; font-weight:600; color: var(--accent); }
+  details.formula-section dl { margin: 10px 0 2px; }
+  details.formula-section dt { font-weight: 600; margin-top: 8px; }
+  details.formula-section dd { margin: 1px 0 0 0; color: #444; }
+</style>
+</head>
+<body>
+  <div id="loadingIndicator"><span class="spinner"></span>Decoding report data...</div>
+  <div id="errorBanner"></div>
+
+  <div id="appBody">
+    <h1>__REPORT_TITLE__</h1>
+    <div class="meta">
+      <span>Generated: <b>__GENERATION_TIMESTAMP__</b></span>
+      <span>Latest complete data date: <b>__LATEST_COMPLETE_DATE__</b></span>
+    </div>
+
+    <div class="disclosure"><b>These stock figures are based on live data, not past records.</b></div>
+
+    <div class="period-banner">
+      <span>Selected period: <b id="periodBannerLabel"></b></span>
+      <span id="periodBannerRange"></span>
+    </div>
+
+    <div class="summary-cards" id="summaryCards"></div>
+
+    <div class="dq-panel" id="dqPanel"></div>
+
+    <div class="toolbar">
+      <div class="field">
+        <label for="accountFilter">Account</label>
+        <select id="accountFilter"><option value="">All</option></select>
+      </div>
+      <div class="field">
+        <label for="marketplaceFilter">Marketplace</label>
+        <select id="marketplaceFilter"><option value="">All</option></select>
+      </div>
+      <div class="field">
+        <label for="periodFilter">Period</label>
+        <select id="periodFilter">
+          <option value="7">7 days</option>
+          <option value="14">14 days</option>
+          <option value="30" selected>30 days</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="searchBox">Search (ASIN / SKU / Title)</label>
+        <input type="text" id="searchBox" placeholder="Type to search...">
+      </div>
+      <button class="secondary" id="resetFilters" type="button">Reset Filters</button>
+      <button id="downloadCsv" type="button">Download CSV</button>
+    </div>
+
+    <div class="table-wrap">
+      <table id="reportTable">
+        <thead><tr id="headerRow"></tr></thead>
+        <tbody id="reportBody"></tbody>
+      </table>
+      <div id="emptyState" class="empty-state" style="display:none;">No rows match the current filters.</div>
+    </div>
+
+    <div class="pager">
+      <button class="secondary" id="prevPage" type="button">&laquo; Prev</button>
+      <span id="pageInfo"></span>
+      <button class="secondary" id="nextPage" type="button">Next &raquo;</button>
+      <label for="pageSize">Rows per page:</label>
+      <select id="pageSize">
+        <option value="25">25</option>
+        <option value="50" selected>50</option>
+        <option value="100">100</option>
+        <option value="250">250</option>
+      </select>
+    </div>
+
+    <details class="formula-section">
+      <summary>Calculation Formulas</summary>
+      <dl>
+        <dt>Conversion Rate (%) = Units Ordered &divide; Sessions &times; 100</dt>
+        <dd>The percentage of visits that resulted in ordered units.</dd>
+        <dt>Click-Through Rate (%) = PPC Clicks &divide; PPC Impressions &times; 100</dt>
+        <dd>The percentage of advertising impressions that resulted in clicks.</dd>
+        <dt>ACOS (%) = PPC Spend &divide; PPC Attributed Sales &times; 100</dt>
+        <dd>Advertising cost as a percentage of sales attributed to advertising.</dd>
+        <dt>Buy Box (%) = Weighted Buy Box total &divide; Buy Box weighting total</dt>
+        <dd>The weighted percentage of eligible customer visits where the product held the Buy Box.</dd>
+        <dt>Category Average Price = Average valid product price within the same marketplace and approved product group</dt>
+        <dd>A comparison price representing similar products in the selected marketplace.</dd>
+        <dt>Days Since Last Sale = Report end date &minus; most recent sale date</dt>
+        <dd>The number of days since the product last recorded a sale.</dd>
+      </dl>
+    </details>
+  </div>
+
+<script>
+const B64_GZIP_DATA = "__B64_GZIP_DATA__";
+const YELLOW_FORBIDDEN = ["Category","Stock Age (Days)","Root Cause","Recommended Action","Priority","Status","Owner","Last Reviewed"];
+
+let DATA = null;   // decompressed { DATES, ACCOUNTS, MARKETPLACES, TITLES, FEED_COVERAGE, PRODUCTS }
+let currentPeriod = 30;
+let allCalculated = [];   // calculated rows for the current period (full universe, before filtering)
+let filtered = [];
+let sortColKey = null, sortAsc = true;
+let page = 1;
+const periodCache = new Map();  // small transient cache: period -> allCalculated array
+
+const VISIBLE_COLUMNS = [
+  { key: "asin", label: "Amazon ASIN", cls: "col-asin" },
+  { key: "sku", label: "Amazon SKU", cls: "col-sku col-group-sep" },
+  { key: "title", label: "Product Title", cls: "title-cell" },
+  { key: "daysSinceLastSale", label: "Days Since Last Sale", cls: "num col-group-sep", numeric: true },
+  { key: "currentStock", label: "Units in Stock", cls: "num", numeric: true },
+  { key: "sessions", label: "Sessions", cls: "num col-group-sep", numeric: true },
+  { key: "pageViews", label: "Page Views", cls: "num", numeric: true },
+  { key: "units", label: "Units Ordered", cls: "num", numeric: true },
+  { key: "conversionRate", label: "Conversion Rate (%)", cls: "num", numeric: true, pct: true },
+  { key: "buyBox", label: "Buy Box (%)", cls: "num", numeric: true, pct: true },
+  { key: "spend", label: "PPC Spend", cls: "num col-group-sep", numeric: true, money: true },
+  { key: "ctr", label: "Click-Through Rate (%)", cls: "num", numeric: true, pct: true },
+  { key: "acos", label: "ACOS (%)", cls: "num", numeric: true, pct: true },
+  { key: "currentPrice", label: "Price", cls: "num col-group-sep", numeric: true, money: true },
+  { key: "categoryAvgPrice", label: "Category Avg Price", cls: "num", numeric: true, money: true },
+];
+
+async function base64ToGunzippedText(b64) {
+  const binaryStr = atob(b64);
+  const bytes = new Uint8Array(binaryStr.length);
+  for (let i = 0; i < binaryStr.length; i++) bytes[i] = binaryStr.charCodeAt(i);
+  if (typeof DecompressionStream === 'undefined') {
+    throw new Error('This browser does not support built-in decompression (DecompressionStream). Please use a recent version of Chrome, Edge, Firefox, or Safari.');
+  }
+  const ds = new DecompressionStream('gzip');
+  const stream = new Blob([bytes]).stream().pipeThrough(ds);
+  const text = await new Response(stream).text();
+  return text;
+}
+
+function periodRange(days) {
+  const end = DATA.DATES.length - 1;
+  const start = end - days + 1;
+  return [start, end];
+}
+
+function calcProduct(p, start, end) {
+  const [accountIdx, marketplaceIdx, asin, sku, titleIdx, daysSinceLastSale, currentStock, currentPrice, categoryAvgPrice, everTracked,
+         sessionsArr, pageViewsArr, unitsArr, clicksArr, impressionsArr, spendArr, attrSalesArr, bbNumArr, bbDenomArr] = p;
+
+  let units = 0, clicks = 0, impressions = 0, spend = 0, attrSales = 0;
+  let sessions = 0, pageViews = 0, bbNum = 0, bbDenom = 0;
+  let anySessionRow = false;
+  for (let i = start; i <= end; i++) {
+    units += unitsArr[i] || 0;
+    clicks += clicksArr[i] || 0;
+    impressions += impressionsArr[i] || 0;
+    spend += spendArr[i] || 0;
+    attrSales += attrSalesArr[i] || 0;
+    if (sessionsArr[i] !== null) { sessions += sessionsArr[i]; anySessionRow = true; }
+    if (pageViewsArr[i] !== null) { pageViews += pageViewsArr[i]; }
+    if (bbNumArr[i] !== null) { bbNum += bbNumArr[i]; }
+    if (bbDenomArr[i] !== null) { bbDenom += bbDenomArr[i]; }
+  }
+
+  let sessionsResult, pageViewsResult;
+  if (anySessionRow) {
+    sessionsResult = sessions;
+    pageViewsResult = pageViews;
+  } else {
+    const fkey = accountIdx + '_' + marketplaceIdx;
+    const coverage = DATA.FEED_COVERAGE[fkey];
+    const overlap = coverage ? !(coverage[1] < start || coverage[0] > end) : false;
+    if (!overlap) {
+      sessionsResult = 'N/A — source outside reporting date coverage';
+    } else if (everTracked) {
+      sessionsResult = 0;
+    } else {
+      sessionsResult = 'N/A — no matching traffic source row';
+    }
+    pageViewsResult = sessionsResult;
+  }
+
+  let conversionRate, buyBox;
+  if (typeof sessionsResult === 'number') {
+    conversionRate = sessionsResult > 0 ? (units / sessionsResult * 100) : (units === 0 ? 0 : null);
+    buyBox = bbDenom > 0 ? (bbNum / bbDenom) : (sessionsResult === 0 ? 0 : null);
+  } else {
+    conversionRate = sessionsResult;
+    buyBox = sessionsResult;
+  }
+
+  const ctr = impressions > 0 ? (clicks / impressions * 100) : null;
+  const acos = attrSales > 0 ? (spend / attrSales * 100) : null;
+
+  return {
+    accountIdx, marketplaceIdx, asin, sku,
+    title: titleIdx >= 0 ? DATA.TITLES[titleIdx] : null,
+    daysSinceLastSale, currentStock, currentPrice, categoryAvgPrice,
+    sessions: sessionsResult, pageViews: pageViewsResult, units,
+    conversionRate, buyBox, spend: Math.round(spend * 100) / 100, ctr, acos,
+  };
+}
+
+function getCalculatedForPeriod(days) {
+  if (periodCache.has(days)) return periodCache.get(days);
+  const [start, end] = periodRange(days);
+  const rows = DATA.PRODUCTS.map(p => calcProduct(p, start, end));
+  periodCache.set(days, rows);
+  return rows;
+}
+
+function loadPeriod(days) {
+  currentPeriod = days;
+  allCalculated = getCalculatedForPeriod(days);
+  const [start, end] = periodRange(days);
+  document.getElementById('periodBannerLabel').textContent = `${days} days`;
+  document.getElementById('periodBannerRange').textContent = `${DATA.DATES[start]} to ${DATA.DATES[end]}`;
+  renderDataQualityPanel();
+  applyFilters();
+}
+
+function renderHeader() {
+  const headerRow = document.getElementById('headerRow');
+  headerRow.innerHTML = VISIBLE_COLUMNS.map(c =>
+    `<th class="${c.cls||''}" data-key="${c.key}" title="${c.label}">${c.label}</th>`
+  ).join('');
+  document.querySelectorAll('#headerRow th').forEach((th) => {
+    th.addEventListener('click', () => {
+      const key = th.dataset.key;
+      if (sortColKey === key) sortAsc = !sortAsc; else { sortColKey = key; sortAsc = true; }
+      sortRows(); page = 1; render();
+    });
+  });
+}
+
+function applyFilters() {
+  const acc = document.getElementById('accountFilter').value;
+  const mkt = document.getElementById('marketplaceFilter').value;
+  const q = document.getElementById('searchBox').value.trim().toLowerCase();
+  filtered = allCalculated.filter(r => {
+    if (acc && DATA.ACCOUNTS[r.accountIdx] !== acc) return false;
+    if (mkt && DATA.MARKETPLACES[r.marketplaceIdx] !== mkt) return false;
+    if (q) {
+      const hay = (r.asin + ' ' + r.sku + ' ' + (r.title||'')).toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
+  if (sortColKey) sortRows();
+  page = 1;
+  renderSummaryCards();
+  render();
+}
+
+function sortRows() {
+  const def = VISIBLE_COLUMNS.find(c => c.key === sortColKey);
+  filtered.sort((a, b) => {
+    let x = a[sortColKey], y = b[sortColKey];
+    if (def && def.numeric) {
+      const xNum = typeof x === 'number', yNum = typeof y === 'number';
+      if (xNum && yNum) { const cmp = x - y; return sortAsc ? cmp : -cmp; }
+      if (xNum !== yNum) return xNum ? -1 : 1;
+    }
+    const cmp = String(x == null ? '' : x).localeCompare(String(y == null ? '' : y));
+    return sortAsc ? cmp : -cmp;
+  });
+}
+
+function renderSummaryCards() {
+  // Dedup grain: account + marketplace + ASIN (same rule validated in v004) --
+  // a multi-SKU ASIN must not have its PPC spend/units counted once per SKU row.
+  const seen = new Set();
+  let totalSpend = 0, totalUnits = 0;
+  const uniqueAsins = new Set(), uniqueSkus = new Set();
+  let withStock = 0, withoutStock = 0;
+
+  filtered.forEach(r => {
+    uniqueAsins.add(r.asin);
+    uniqueSkus.add(r.sku);
+    if (typeof r.currentStock === 'number' && r.currentStock > 0) withStock++; else withoutStock++;
+
+    const key = r.accountIdx + '|' + r.marketplaceIdx + '|' + r.asin;
+    if (!seen.has(key)) {
+      seen.add(key);
+      totalSpend += (typeof r.spend === 'number' ? r.spend : 0);
+      totalUnits += (typeof r.units === 'number' ? r.units : 0);
+    }
+  });
+
+  const cards = [
+    ['Visible Rows', filtered.length],
+    ['Unique ASINs', uniqueAsins.size],
+    ['Unique SKUs', uniqueSkus.size],
+    ['Total PPC Spend', '£' + totalSpend.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})],
+    ['Total Units Ordered', totalUnits.toLocaleString()],
+    ['Products With Current Stock', withStock],
+    ['Products Without Current Stock', withoutStock],
+  ];
+  document.getElementById('summaryCards').innerHTML = cards.map(([label, value]) =>
+    `<div class="card"><span class="label">${label}</span><span class="value">${value}</span></div>`
+  ).join('');
+}
+
+function renderDataQualityPanel() {
+  let real = 0, zero = 0, outside = 0, nomatch = 0;
+  allCalculated.forEach(r => {
+    if (typeof r.sessions === 'number') { if (r.sessions > 0) real++; else zero++; }
+    else if (r.sessions === 'N/A — source outside reporting date coverage') outside++;
+    else nomatch++;
+  });
+  const total = allCalculated.length;
+  const pct = (n) => total ? ((n/total)*100).toFixed(1)+'%' : '0%';
+  document.getElementById('dqPanel').innerHTML = `
+    <div class="dq-title">Traffic Data Quality — ${currentPeriod}-day period</div>
+    <div class="dq-grid">
+      <div>Rows with real Sessions data: <b>${real}</b> (${pct(real)})</div>
+      <div>Rows confirmed zero sessions: <b>${zero}</b> (${pct(zero)})</div>
+      <div>Rows outside traffic feed coverage: <b>${outside}</b> (${pct(outside)})</div>
+      <div>Rows never tracked by traffic feed: <b>${nomatch}</b> (${pct(nomatch)})</div>
+    </div>
+    <div class="dq-warning">Some accounts/marketplaces have a traffic data feed that is not currently up to date -- affected products show a precise reason instead of a blank value. Sales, advertising spend, and stock figures are unaffected.</div>
+  `;
+}
+
+function fmt(value, def) {
+  if (typeof value === 'string') return { text: value, cls: 'na' };
+  if (value === null || value === undefined) return { text: '', cls: '' };
+  if (typeof value === 'number') {
+    if (def.pct) return { text: value.toFixed(2) + '%', cls: value === 0 ? 'zero-real' : '' };
+    if (def.money) return { text: '£' + value.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}), cls: value === 0 ? 'zero-real' : '' };
+    return { text: value.toLocaleString(), cls: value === 0 ? 'zero-real' : '' };
+  }
+  return { text: String(value), cls: '' };
+}
+
+function render() {
+  const pageSize = parseInt(document.getElementById('pageSize').value, 10);
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  if (page > totalPages) page = totalPages;
+  const start = (page-1)*pageSize;
+  const pageRows = filtered.slice(start, start+pageSize);
+
+  const tbody = document.getElementById('reportBody');
+  const emptyState = document.getElementById('emptyState');
+  if (pageRows.length === 0) {
+    tbody.innerHTML = '';
+    emptyState.style.display = 'block';
+  } else {
+    emptyState.style.display = 'none';
+    tbody.innerHTML = pageRows.map(r => '<tr>' + VISIBLE_COLUMNS.map(def => {
+      const raw = def.key === 'title' ? r.title : r[def.key];
+      const { text, cls } = fmt(raw, def);
+      const isTitle = def.key === 'title';
+      const classes = [def.cls||'', cls].filter(Boolean).join(' ');
+      const title = isTitle ? ` title="${String(raw||'').replace(/"/g,'&quot;')}"` : '';
+      return `<td class="${classes}"${title}>${text}</td>`;
+    }).join('') + '</tr>').join('');
+  }
+  document.getElementById('pageInfo').textContent = `Page ${page} of ${totalPages} (${filtered.length} filtered rows)`;
+}
+
+function csvEscape(value) {
+  const s = String(value === null || value === undefined ? '' : value);
+  if (/[",\n]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
+  return s;
+}
+
+function slugify(s) {
+  return String(s || 'all').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'all';
+}
+
+function downloadCsv() {
+  const acc = document.getElementById('accountFilter').value || 'all-accounts';
+  const mkt = document.getElementById('marketplaceFilter').value || 'all-marketplaces';
+  const csvCols = [
+    { key: 'account', label: 'Account' },
+    { key: 'marketplace', label: 'Marketplace' },
+    ...VISIBLE_COLUMNS,
+  ];
+  const header = csvCols.map(c => csvEscape(c.label)).join(',');
+  const body = filtered.map(r => csvCols.map(c => {
+    if (c.key === 'account') return csvEscape(DATA.ACCOUNTS[r.accountIdx]);
+    if (c.key === 'marketplace') return csvEscape(DATA.MARKETPLACES[r.marketplaceIdx]);
+    const raw = c.key === 'title' ? r.title : r[c.key];
+    return csvEscape(raw);
+  }).join(',')).join('\r\n');
+  const csvContent = '﻿' + header + '\r\n' + body;
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const today = '__GENERATION_DATE__';
+  a.href = url;
+  a.download = `${today}_${slugify(acc)}_${slugify(mkt)}_amazon_no_moving_${currentPeriod}d.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function populateFilterOptions() {
+  document.getElementById('accountFilter').innerHTML = '<option value="">All</option>' +
+    DATA.ACCOUNTS.map(a => `<option value="${a}">${a}</option>`).join('');
+  document.getElementById('marketplaceFilter').innerHTML = '<option value="">All</option>' +
+    DATA.MARKETPLACES.map(m => `<option value="${m}">${m}</option>`).join('');
+}
+
+async function init() {
+  try {
+    const text = await base64ToGunzippedText(B64_GZIP_DATA);
+    DATA = JSON.parse(text);
+
+    document.getElementById('loadingIndicator').style.display = 'none';
+    document.getElementById('appBody').style.display = 'block';
+
+    populateFilterOptions();
+    renderHeader();
+
+    document.getElementById('accountFilter').addEventListener('change', applyFilters);
+    document.getElementById('marketplaceFilter').addEventListener('change', applyFilters);
+    let searchDebounce;
+    document.getElementById('searchBox').addEventListener('input', () => {
+      clearTimeout(searchDebounce);
+      searchDebounce = setTimeout(applyFilters, 150);
+    });
+    document.getElementById('pageSize').addEventListener('change', () => { page = 1; render(); });
+    document.getElementById('prevPage').addEventListener('click', () => { if (page>1) { page--; render(); } });
+    document.getElementById('nextPage').addEventListener('click', () => { page++; render(); });
+    document.getElementById('resetFilters').addEventListener('click', () => {
+      document.getElementById('accountFilter').value = '';
+      document.getElementById('marketplaceFilter').value = '';
+      document.getElementById('searchBox').value = '';
+      sortColKey = null; sortAsc = true;
+      applyFilters();
+    });
+    document.getElementById('downloadCsv').addEventListener('click', downloadCsv);
+    document.getElementById('periodFilter').addEventListener('change', (e) => {
+      loadPeriod(parseInt(e.target.value, 10));
+    });
+
+    loadPeriod(30);
+  } catch (err) {
+    document.getElementById('loadingIndicator').style.display = 'none';
+    const banner = document.getElementById('errorBanner');
+    banner.style.display = 'block';
+    banner.textContent = 'This report could not be loaded: ' + (err && err.message ? err.message : String(err)) +
+      '. Please try opening this file in a recent version of Chrome, Edge, Firefox, or Safari.';
+  }
+}
+
+init();
+</script>
+</body>
+</html>

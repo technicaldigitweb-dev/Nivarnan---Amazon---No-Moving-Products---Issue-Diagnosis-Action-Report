@@ -1,0 +1,22 @@
+{
+  "1366x768": {
+    "consoleErrors": [],
+    "naCellInfo": {
+      "title": "Source outside reporting date coverage",
+      "ariaLabel": "Unavailable: Source outside reporting date coverage",
+      "text": "N/A",
+      "x": 285,
+      "y": 522.25
+    }
+  },
+  "1920x1080": {
+    "consoleErrors": [],
+    "naCellInfo": {
+      "title": "Source outside reporting date coverage",
+      "ariaLabel": "Unavailable: Source outside reporting date coverage",
+      "text": "N/A",
+      "x": 839,
+      "y": 472.25
+    }
+  }
+}

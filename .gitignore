@@ -1,0 +1,52 @@
+# Credentials -- never commit
+.env
+.env.local
+.env.*.local
+.env.*
+!.env.example
+
+# Protected reference-only source templates -- confirmed (2026-07-20) to
+# contain real credential values; excluded from Git, never modified.
+# See 00_PROJECT_CONTROL/PROTECTED_SOURCE_INVENTORY.md.
+Sources/db_access_templates/
+02_SOURCE/db_access_templates/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Large generated outputs / logs (not source-controlled)
+09_OUTPUTS/logs/
+09_OUTPUTS/data/
+# Superseded/intermediate HTML build iterations (some >100MB) -- only the
+# curated 09_OUTPUTS/html/production/ and .../test_versions/ subfolders
+# are approved for Git; loose top-level iteration files are evidence-only.
+09_OUTPUTS/html/*.html
+
+# Runtime / temp / cache / secrets
+secrets/
+runtime/
+logs/
+*.log
+.cache/
+browser-profile/
+playwright-report/
+test-results/
+tmp/
+temp/
+*.lock.runtime
+
+# Raw source intake -- duplicated by curated copies inside the numbered
+# folders (01_REQUIREMENTS, 02_SOURCE, 08_SKILLS); kept local-only.
+/Sources/
+
+# Uploaded source workbooks / archives -- reference-only, evidence-only
+# outside Git per this closure task's own file-size/type review policy.
+*.xlsx
+*.zip
+
+# Local Claude Code tooling config -- not a project asset.
+/.claude/
+/.mcp.json

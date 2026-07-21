@@ -1,0 +1,58 @@
+[Unit]
+Description=ANPIA daily production report publication (REQ-ANPIA-REQ-01-D02)
+Documentation=file:///opt/anpia/05_IMPLEMENTATION/deployment/README.md
+# Fail fast if the network/DB is unreachable rather than hanging indefinitely.
+After=network-online.target
+Wants=network-online.target
+# Prevent overlap with another run of the same unit (systemd enforces this
+# automatically for a oneshot service with no Type=simple/forking daemon
+# behavior, but StartLimit* below adds an explicit backstop). Real
+# concurrency protection is the pipeline's own file + advisory lock.
+StartLimitIntervalSec=3600
+StartLimitBurst=3
+
+[Service]
+Type=oneshot
+
+# -- Explicit, non-guessed identity and paths --------------------------
+# Deployment-time REQUIRED: replace the placeholders below (User, Group,
+# WorkingDirectory, EnvironmentFile, ANPIA_PROJECT_ROOT, ANPIA_PYTHON_BIN)
+# with the real values for the target VM. Do not run as root.
+User=anpia-svc
+Group=anpia-svc
+WorkingDirectory=/opt/anpia
+EnvironmentFile=/etc/anpia/anpia-daily.env
+Environment=ANPIA_PROJECT_ROOT=/opt/anpia
+Environment=ANPIA_PYTHON_BIN=/opt/anpia/.venv/bin/python3
+# ANPIA_ENV_FILE points at the PROTECTED credential file -- not committed to
+# source control, permissions 0600, owned by the service user only.
+Environment=ANPIA_ENV_FILE=/etc/anpia/.env
+
+ExecStart=/opt/anpia/05_IMPLEMENTATION/deployment/run_anpia_daily.sh
+
+# -- Timeout / restart policy --------------------------------------------
+# A stuck extraction or DB call must not hang forever; the pipeline itself
+# also enforces its own connection timeouts (anpia_config.py:
+# connect_timeout=15), this is a hard outer ceiling.
+TimeoutStartSec=1800
+# Do NOT auto-restart on failure -- a failed run means a safety gate
+# rejected the publish (or a real error occurred); retrying automatically
+# without human review risks masking a real data-quality problem. The
+# next scheduled timer firing (tomorrow) is the natural retry, not systemd
+# restart logic.
+Restart=no
+
+# -- Logging ---------------------------------------------------------------
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=anpia-daily
+
+# -- Hardening (defense in depth, adjust only if the target VM requires) --
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths=/opt/anpia/09_OUTPUTS
+ProtectHome=true
+
+[Install]
+WantedBy=multi-user.target

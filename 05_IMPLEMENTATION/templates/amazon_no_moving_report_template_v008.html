@@ -1,0 +1,667 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>__REPORT_TITLE__</title>
+<style>
+  :root {
+    --accent:#1f3a5f; --accent-light:#2c527f;
+    --w-asin: 115px; --w-sku: 170px; --w-title: 360px;
+    --left-asin: 0px; --left-sku: 115px; --left-title: 285px;
+    --w-days: 125px; --w-stock: 105px; --w-sessions: 100px; --w-pageviews: 105px;
+    --w-units: 110px; --w-cvr: 125px; --w-buybox: 105px; --w-spend: 110px;
+    --w-ctr: 120px; --w-acos: 100px; --w-price: 100px; --w-catprice: 135px;
+  }
+  * { box-sizing: border-box; }
+  body { font-family: -apple-system, Segoe UI, Arial, Helvetica, sans-serif; margin: 0; padding: 12px; color: #1a1a1a; background: #f2f4f7; }
+  h1 { font-size: 21px; margin: 0 0 3px 0; color: var(--accent); }
+  .meta { color: #555; font-size: 13px; margin-bottom: 6px; display: flex; flex-wrap: wrap; gap: 14px; }
+  .meta span b { color: #222; }
+  .disclosure { background: #fff3cd; border: 1px solid #ffe69c; padding: 6px 14px; border-radius: 6px; font-size: 13px; margin-bottom: 8px; }
+  .period-banner { background: var(--accent); color: #fff; padding: 5px 14px; border-radius: 6px; font-size: 13px; margin-bottom: 8px; display:flex; justify-content:space-between; flex-wrap:wrap; gap:6px;}
+  .summary-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px,1fr)); gap: 10px; margin-bottom: 6px; }
+  .card { background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 6px 12px; font-size: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
+  .card .label { color:#666; }
+  .card .value { display: block; font-size: 19px; font-weight: 600; color: var(--accent); margin-top: 2px; }
+
+  .dq-panel { background:#fff; border:1px solid #ddd; border-radius:8px; padding:5px 14px; margin-bottom:8px; font-size:12.5px; display:flex; align-items:center; gap:18px; flex-wrap:wrap; }
+  .dq-title { font-weight:600; color: var(--accent); white-space:nowrap; }
+  .dq-stats { display:flex; gap:16px; flex-wrap:wrap; font-size:12px; }
+  .dq-stats b { color:#222; }
+  .dq-note { font-size:11.5px; color:#7a1f1f; background:#fdeaea; border:1px solid #f3b8b8; border-radius:5px; padding:3px 9px; }
+
+  .toolbar { background:#fff; border:1px solid #ddd; border-radius:8px; padding:7px 14px; margin-bottom:8px; display:flex; gap:14px; flex-wrap:wrap; align-items:flex-end; }
+  .field { display:flex; flex-direction:column; gap:3px; font-size:12px; }
+  .field label { color:#444; font-weight:600; }
+  .field.search-field { flex: 1 1 260px; min-width: 220px; }
+  select, input[type=text] { padding: 7px 9px; font-size: 13px; border:1px solid #ccc; border-radius:4px; min-width: 140px; }
+  .field.search-field input { width: 100%; }
+  button { padding: 8px 16px; font-size: 13px; border-radius: 5px; border: 1px solid var(--accent); background: var(--accent); color:#fff; cursor:pointer; font-weight: 600; }
+  button.secondary { background:#fff; color: var(--accent); font-weight: 500; }
+  button:hover { opacity: 0.9; }
+  button:focus-visible, select:focus-visible, input:focus-visible, th:focus-visible {
+    outline: 3px solid #4a90d9; outline-offset: 1px;
+  }
+
+  /* -- v008 row-density fix (REQ-01-D02, 2026-07-20): v001 used max-height
+     with a 420px floor, which meant any hosted-modal viewport shorter than
+     ~800px collapsed the table to its floor -- real-browser measurement
+     showed this rendered only 4 complete rows (matching the user-reported
+     "~5 rows"). Fixed by (a) using `height: clamp(...)` with a floor sized
+     to guarantee ~15 rows regardless of hosted-viewport height, and (b)
+     tightening cell/section padding and margins (NOT font sizes -- no text
+     was shrunk) to cut per-row height from a measured 75px to 61px. Floor
+     (984px) = 15 * 61px row height + ~52px header + ~17px horizontal
+     scrollbar allowance, real-browser-verified. See
+     06_VALIDATION/2026-07-20__anpia_v002_ui_validation.md for the full
+     measurement trail. */
+  .table-wrap {
+    background:#fff; border:1px solid #ddd; border-radius:8px;
+    overflow: auto; position: relative;
+    height: clamp(984px, calc(100vh - 373px), 1100px);
+    min-height: 984px;
+  }
+  table { border-collapse: separate; border-spacing: 0; width: max-content; min-width: 100%; font-size: 12.5px; table-layout: fixed; }
+
+  th, td {
+    border-bottom: 1px solid #eee; border-right: 1px solid #eee;
+    padding: 4px 9px;
+    overflow: hidden; text-overflow: ellipsis;
+    vertical-align: middle;
+  }
+  th {
+    background: var(--accent); color: #fff; cursor: pointer;
+    position: sticky; top: 0; z-index: 5; user-select:none;
+    white-space: normal; line-height: 1.25; vertical-align: bottom;
+  }
+  th.no-sort { cursor: default; }
+  th .sort-hint { font-size: 9px; opacity: 0.75; display:block; }
+  th.align-left { text-align: left; }
+  th.align-center { text-align: center; }
+
+  td.metric-cell, td.na-cell { white-space: nowrap; }
+
+  /* -- Frozen identity columns: Amazon ASIN, Amazon SKU, Product Title --
+     Same width/offset CSS variables drive both header (th) and body (td)
+     cells, so they can never drift apart -- this is the exact class of bug
+     (header cells missing the sticky class entirely) found and fixed in
+     v006; v007/v008 keep the same pattern for the frozen Title column. */
+  th.col-asin, td.col-asin {
+    position: sticky; left: var(--left-asin);
+    width: var(--w-asin); min-width: var(--w-asin); max-width: var(--w-asin);
+    background:#fff; z-index: 3; text-align:left; white-space:nowrap;
+  }
+  th.col-sku, td.col-sku {
+    position: sticky; left: var(--left-sku);
+    width: var(--w-sku); min-width: var(--w-sku); max-width: var(--w-sku);
+    background:#fff; z-index: 3; text-align:left; white-space:nowrap;
+  }
+  th.col-title, td.col-title {
+    position: sticky; left: var(--left-title);
+    width: var(--w-title); min-width: var(--w-title); max-width: var(--w-title);
+    background:#fff; z-index: 3; text-align:left; white-space: normal;
+    border-right: 3px solid var(--accent-light); /* visible separator after the last frozen column */
+  }
+  th.col-asin, th.col-sku, th.col-title { background: var(--accent); z-index: 6; }
+  tr:nth-child(even) td.col-asin, tr:nth-child(even) td.col-sku, tr:nth-child(even) td.col-title { background: #fafafa; }
+  tbody tr:hover td.col-asin, tbody tr:hover td.col-sku, tbody tr:hover td.col-title { background: #eef4fb; }
+
+  /* -- Product Title: inner div carries the line-clamp, NOT the td itself
+     (a td with display:-webkit-box stops behaving like a table cell in some
+     engines) -- up to 3 lines, consistent minimum row height, never italic,
+     never treated as an N/A value. min-height reduced from 60px (v007) to
+     52px (v008) -- still comfortably fits 3 lines at this font-size/line-
+     height (measured ~48.75px for 3 lines), font-size itself is unchanged. -- */
+  .title-text {
+    min-height: 52px;
+    line-height: 1.3;
+    white-space: normal;
+    word-break: normal;
+    overflow-wrap: anywhere;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    font-style: normal;
+    color: #1a1a1a;
+    cursor: help;
+  }
+
+  .col-group-sep { border-left: 2px solid #d8dee8; }
+
+  td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  col.c-days { width: var(--w-days); } col.c-stock { width: var(--w-stock); }
+  col.c-sessions { width: var(--w-sessions); } col.c-pageviews { width: var(--w-pageviews); }
+  col.c-units { width: var(--w-units); } col.c-cvr { width: var(--w-cvr); }
+  col.c-buybox { width: var(--w-buybox); } col.c-spend { width: var(--w-spend); }
+  col.c-ctr { width: var(--w-ctr); } col.c-acos { width: var(--w-acos); }
+  col.c-price { width: var(--w-price); } col.c-catprice { width: var(--w-catprice); }
+  col.c-asin { width: var(--w-asin); } col.c-sku { width: var(--w-sku); } col.c-title { width: var(--w-title); }
+
+  td.na-cell {
+    color: #8a5a00; background: #fff8e6; font-style: normal; font-weight: 500;
+  }
+  td.zero-real { color: #555; }
+  td.negative-value { color: #a3242b; font-weight: 600; }
+
+  tr:nth-child(even) td:not(.col-asin):not(.col-sku):not(.col-title) { background: #fafafa; }
+  tbody tr:hover td { background: #eef4fb; }
+
+  .pager { margin-top: 10px; display: flex; gap: 10px; align-items: center; font-size: 13px; flex-wrap:wrap; }
+  .empty-state { padding: 30px; text-align: center; color: #777; }
+  #loadingIndicator { padding: 40px; text-align: center; font-size: 14px; color: #555; }
+  #loadingIndicator .spinner { display:inline-block; width:18px; height:18px; border:3px solid #ccc; border-top-color: var(--accent); border-radius:50%; animation: spin 0.8s linear infinite; margin-right:8px; vertical-align:middle; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  #errorBanner { display:none; background:#fdeaea; border:1px solid #f3b8b8; color:#7a1f1f; padding:12px 16px; border-radius:8px; margin-bottom:12px; font-size:13.5px; }
+  #appBody { display:none; }
+
+  details.formula-section { background:#fff; border:1px solid #ddd; border-radius:8px; padding:10px 16px; margin-top: 16px; font-size: 12.5px; }
+  details.formula-section summary { cursor:pointer; font-weight:600; color: var(--accent); }
+  details.formula-section dl { margin: 10px 0 2px; }
+  details.formula-section dt { font-weight: 600; margin-top: 8px; }
+  details.formula-section dd { margin: 1px 0 0 0; color: #444; }
+
+  @media (max-width: 900px) {
+    .toolbar { flex-direction: column; align-items: stretch; }
+    .summary-cards { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+  <div id="loadingIndicator"><span class="spinner"></span>Decoding report data...</div>
+  <div id="errorBanner"></div>
+
+  <div id="appBody">
+    <h1>__REPORT_TITLE__</h1>
+    <div class="meta">
+      <span>Generated: <b>__GENERATION_TIMESTAMP__</b></span>
+      <span>Latest complete data date: <b>__LATEST_COMPLETE_DATE__</b></span>
+    </div>
+
+    <div class="disclosure"><b>These stock figures are based on live data, not past records.</b></div>
+
+    <div class="period-banner">
+      <span>Selected period: <b id="periodBannerLabel"></b></span>
+      <span id="periodBannerRange"></span>
+    </div>
+
+    <div class="summary-cards" id="summaryCards"></div>
+
+    <div class="dq-panel" id="dqPanel"></div>
+
+    <div class="toolbar">
+      <div class="field">
+        <label for="accountFilter">Account</label>
+        <select id="accountFilter"><option value="">All</option></select>
+      </div>
+      <div class="field">
+        <label for="marketplaceFilter">Marketplace</label>
+        <select id="marketplaceFilter"><option value="">All</option></select>
+      </div>
+      <div class="field">
+        <label for="periodFilter">Period</label>
+        <select id="periodFilter">
+          <option value="7">7 days</option>
+          <option value="14">14 days</option>
+          <option value="30" selected>30 days</option>
+        </select>
+      </div>
+      <div class="field search-field">
+        <label for="searchBox">Search (ASIN / SKU / Title)</label>
+        <input type="text" id="searchBox" placeholder="Type to search...">
+      </div>
+      <button class="secondary" id="resetFilters" type="button">Reset Filters</button>
+      <button id="downloadCsv" type="button">Download CSV</button>
+    </div>
+
+    <div class="table-wrap">
+      <table id="reportTable">
+        <colgroup id="colGroup"></colgroup>
+        <thead><tr id="headerRow"></tr></thead>
+        <tbody id="reportBody"></tbody>
+      </table>
+      <div id="emptyState" class="empty-state" style="display:none;">No rows match the current filters.</div>
+    </div>
+
+    <div class="pager">
+      <button class="secondary" id="prevPage" type="button">&laquo; Prev</button>
+      <span id="pageInfo"></span>
+      <button class="secondary" id="nextPage" type="button">Next &raquo;</button>
+      <label for="pageSize">Rows per page:</label>
+      <select id="pageSize">
+        <option value="25">25</option>
+        <option value="50" selected>50</option>
+        <option value="100">100</option>
+        <option value="250">250</option>
+      </select>
+    </div>
+
+    <details class="formula-section">
+      <summary>Calculation Formulas</summary>
+      <dl>
+        <dt>Conversion Rate (%) = Units Ordered &divide; Sessions &times; 100</dt>
+        <dd>The percentage of visits that resulted in ordered units.</dd>
+        <dt>CTR (%) = PPC Clicks &divide; PPC Impressions &times; 100</dt>
+        <dd>The percentage of advertising impressions that resulted in clicks.</dd>
+        <dt>ACOS (%) = PPC Spend &divide; PPC Attributed Sales &times; 100</dt>
+        <dd>Advertising cost as a percentage of sales attributed to advertising.</dd>
+        <dt>Buy Box (%) = Weighted Buy Box total &divide; Buy Box weighting total</dt>
+        <dd>The weighted percentage of eligible customer visits where the product held the Buy Box.</dd>
+        <dt>Category Average Price = Average valid product price within the same marketplace and approved product group</dt>
+        <dd>A comparison price representing similar products in the selected marketplace.</dd>
+        <dt>Days Since Last Sale = Report end date &minus; most recent sale date</dt>
+        <dd>The number of days since the product last recorded a sale.</dd>
+      </dl>
+    </details>
+  </div>
+
+<script>
+const B64_GZIP_DATA = "__B64_GZIP_DATA__";
+const YELLOW_FORBIDDEN = ["Category","Stock Age (Days)","Root Cause","Recommended Action","Priority","Status","Owner","Last Reviewed"];
+
+let DATA = null;
+let currentPeriod = 30;
+let allCalculated = [];
+let filtered = [];
+let sortColKey = null, sortAsc = true;
+let page = 1;
+const periodCache = new Map();
+
+// sortable: false for the three frozen identity columns (ASIN/SKU/Title) --
+// they must not have a click handler, sort cursor, sort arrow, or sortable
+// aria/tabindex attributes. All metric columns keep sortable: true.
+const VISIBLE_COLUMNS = [
+  { key: "asin", label: "Amazon ASIN", cls: "col-asin", colClass: "c-asin", headAlign: "align-left", sortable: false },
+  { key: "sku", label: "Amazon SKU", cls: "col-sku", colClass: "c-sku", headAlign: "align-left", sortable: false },
+  { key: "title", label: "Product Title", cls: "col-title", colClass: "c-title", headAlign: "align-left", sortable: false },
+  { key: "daysSinceLastSale", label: "Days Since Last Sale", cls: "num metric-cell col-group-sep", colClass: "c-days", numeric: true, headAlign: "align-center", sortable: true },
+  { key: "currentStock", label: "Units in Stock", cls: "num metric-cell", colClass: "c-stock", numeric: true, headAlign: "align-center", sortable: true },
+  { key: "sessions", label: "Sessions", cls: "num metric-cell col-group-sep", colClass: "c-sessions", numeric: true, headAlign: "align-center", sortable: true },
+  { key: "pageViews", label: "Page Views", cls: "num metric-cell", colClass: "c-pageviews", numeric: true, headAlign: "align-center", sortable: true },
+  { key: "units", label: "Units Ordered", cls: "num metric-cell", colClass: "c-units", numeric: true, headAlign: "align-center", sortable: true },
+  { key: "conversionRate", label: "Conversion Rate", cls: "num metric-cell", colClass: "c-cvr", numeric: true, pct: true, headAlign: "align-center", headTitle: "Conversion Rate (%)", sortable: true },
+  { key: "buyBox", label: "Buy Box", cls: "num metric-cell", colClass: "c-buybox", numeric: true, pct: true, headAlign: "align-center", headTitle: "Buy Box (%)", sortable: true },
+  { key: "spend", label: "PPC Spend", cls: "num metric-cell col-group-sep", colClass: "c-spend", numeric: true, money: true, headAlign: "align-center", sortable: true },
+  { key: "ctr", label: "CTR", cls: "num metric-cell", colClass: "c-ctr", numeric: true, pct: true, headAlign: "align-center", headTitle: "Click-Through Rate (%)", sortable: true },
+  { key: "acos", label: "ACOS", cls: "num metric-cell", colClass: "c-acos", numeric: true, pct: true, headAlign: "align-center", headTitle: "Advertising Cost of Sales (%)", sortable: true },
+  { key: "currentPrice", label: "Price", cls: "num metric-cell col-group-sep", colClass: "c-price", numeric: true, money: true, headAlign: "align-center", sortable: true },
+  { key: "categoryAvgPrice", label: "Category Avg Price", cls: "num metric-cell", colClass: "c-catprice", numeric: true, money: true, headAlign: "align-center", sortable: true },
+];
+
+async function base64ToGunzippedText(b64) {
+  const binaryStr = atob(b64);
+  const bytes = new Uint8Array(binaryStr.length);
+  for (let i = 0; i < binaryStr.length; i++) bytes[i] = binaryStr.charCodeAt(i);
+  if (typeof DecompressionStream === 'undefined') {
+    throw new Error('This browser does not support built-in decompression (DecompressionStream). Please use a recent version of Chrome, Edge, Firefox, or Safari.');
+  }
+  const ds = new DecompressionStream('gzip');
+  const stream = new Blob([bytes]).stream().pipeThrough(ds);
+  const text = await new Response(stream).text();
+  return text;
+}
+
+function periodRange(days) {
+  const end = DATA.DATES.length - 1;
+  const start = end - days + 1;
+  return [start, end];
+}
+
+// -- UNCHANGED from v005/v006/v007: identical calculation logic, only presentation changed --
+function calcProduct(p, start, end) {
+  const [accountIdx, marketplaceIdx, asin, sku, titleIdx, daysSinceLastSale, currentStock, currentPrice, categoryAvgPrice, everTracked,
+         sessionsArr, pageViewsArr, unitsArr, clicksArr, impressionsArr, spendArr, attrSalesArr, bbNumArr, bbDenomArr] = p;
+
+  let units = 0, clicks = 0, impressions = 0, spend = 0, attrSales = 0;
+  let sessions = 0, pageViews = 0, bbNum = 0, bbDenom = 0;
+  let anySessionRow = false;
+  for (let i = start; i <= end; i++) {
+    units += unitsArr[i] || 0;
+    clicks += clicksArr[i] || 0;
+    impressions += impressionsArr[i] || 0;
+    spend += spendArr[i] || 0;
+    attrSales += attrSalesArr[i] || 0;
+    if (sessionsArr[i] !== null) { sessions += sessionsArr[i]; anySessionRow = true; }
+    if (pageViewsArr[i] !== null) { pageViews += pageViewsArr[i]; }
+    if (bbNumArr[i] !== null) { bbNum += bbNumArr[i]; }
+    if (bbDenomArr[i] !== null) { bbDenom += bbDenomArr[i]; }
+  }
+
+  let sessionsResult, pageViewsResult;
+  if (anySessionRow) {
+    sessionsResult = sessions;
+    pageViewsResult = pageViews;
+  } else {
+    const fkey = accountIdx + '_' + marketplaceIdx;
+    const coverage = DATA.FEED_COVERAGE[fkey];
+    const overlap = coverage ? !(coverage[1] < start || coverage[0] > end) : false;
+    if (!overlap) {
+      sessionsResult = 'N/A — source outside reporting date coverage';
+    } else if (everTracked) {
+      sessionsResult = 0;
+    } else {
+      sessionsResult = 'N/A — no matching traffic source row';
+    }
+    pageViewsResult = sessionsResult;
+  }
+
+  let conversionRate, buyBox;
+  if (typeof sessionsResult === 'number') {
+    conversionRate = sessionsResult > 0 ? (units / sessionsResult * 100) : (units === 0 ? 0 : null);
+    buyBox = bbDenom > 0 ? (bbNum / bbDenom) : (sessionsResult === 0 ? 0 : null);
+  } else {
+    conversionRate = sessionsResult;
+    buyBox = sessionsResult;
+  }
+
+  const ctr = impressions > 0 ? (clicks / impressions * 100) : null;
+  const acos = attrSales > 0 ? (spend / attrSales * 100) : null;
+
+  return {
+    accountIdx, marketplaceIdx, asin, sku,
+    title: titleIdx >= 0 ? DATA.TITLES[titleIdx] : null,
+    daysSinceLastSale, currentStock, currentPrice, categoryAvgPrice,
+    sessions: sessionsResult, pageViews: pageViewsResult, units,
+    conversionRate, buyBox, spend: Math.round(spend * 100) / 100, ctr, acos,
+  };
+}
+
+function getCalculatedForPeriod(days) {
+  if (periodCache.has(days)) return periodCache.get(days);
+  const [start, end] = periodRange(days);
+  const rows = DATA.PRODUCTS.map(p => calcProduct(p, start, end));
+  periodCache.set(days, rows);
+  return rows;
+}
+
+function loadPeriod(days) {
+  currentPeriod = days;
+  allCalculated = getCalculatedForPeriod(days);
+  const [start, end] = periodRange(days);
+  document.getElementById('periodBannerLabel').textContent = `${days} days`;
+  document.getElementById('periodBannerRange').textContent = `${DATA.DATES[start]} to ${DATA.DATES[end]}`;
+  renderDataQualityPanel();
+  applyFilters();
+}
+
+function renderColGroup() {
+  document.getElementById('colGroup').innerHTML = VISIBLE_COLUMNS.map(c => `<col class="${c.colClass}">`).join('');
+}
+
+function renderHeader() {
+  const headerRow = document.getElementById('headerRow');
+  headerRow.innerHTML = VISIBLE_COLUMNS.map(c => {
+    const title = c.headTitle || c.label;
+    const classes = [c.cls || '', c.headAlign || '', c.sortable ? '' : 'no-sort'].filter(Boolean).join(' ');
+    if (!c.sortable) {
+      // Identity columns (ASIN/SKU/Title): no sort affordance at all --
+      // no tabindex, no sort-hint span, no click/keydown listener attached below.
+      return `<th class="${classes}" data-key="${c.key}" title="${title}" scope="col">${c.label}</th>`;
+    }
+    return `<th class="${classes}" data-key="${c.key}" title="${title}" scope="col" tabindex="0">${c.label}<span class="sort-hint">&#8597; sort</span></th>`;
+  }).join('');
+  document.querySelectorAll('#headerRow th').forEach((th) => {
+    const def = VISIBLE_COLUMNS.find(c => c.key === th.dataset.key);
+    if (!def || !def.sortable) return; // identity columns: no click/keydown handler attached
+    const activate = () => {
+      const key = th.dataset.key;
+      if (sortColKey === key) sortAsc = !sortAsc; else { sortColKey = key; sortAsc = true; }
+      sortRows(); page = 1; render();
+    };
+    th.addEventListener('click', activate);
+    th.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); activate(); } });
+  });
+}
+
+function applyFilters() {
+  const acc = document.getElementById('accountFilter').value;
+  const mkt = document.getElementById('marketplaceFilter').value;
+  const q = document.getElementById('searchBox').value.trim().toLowerCase();
+  filtered = allCalculated.filter(r => {
+    if (acc && DATA.ACCOUNTS[r.accountIdx] !== acc) return false;
+    if (mkt && DATA.MARKETPLACES[r.marketplaceIdx] !== mkt) return false;
+    if (q) {
+      const hay = (r.asin + ' ' + r.sku + ' ' + (r.title||'')).toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
+  if (sortColKey) sortRows();
+  page = 1;
+  renderSummaryCards();
+  render();
+}
+
+function sortRows() {
+  const def = VISIBLE_COLUMNS.find(c => c.key === sortColKey);
+  if (!def || !def.sortable) return; // defensive: identity columns are never sortable
+  filtered.sort((a, b) => {
+    let x = a[sortColKey], y = b[sortColKey];
+    if (def && def.numeric) {
+      const xNum = typeof x === 'number', yNum = typeof y === 'number';
+      if (xNum && yNum) { const cmp = x - y; return sortAsc ? cmp : -cmp; }
+      if (xNum !== yNum) return xNum ? -1 : 1;
+    }
+    const cmp = String(x == null ? '' : x).localeCompare(String(y == null ? '' : y));
+    return sortAsc ? cmp : -cmp;
+  });
+}
+
+function renderSummaryCards() {
+  const seen = new Set();
+  let totalSpend = 0, totalUnits = 0;
+  const uniqueAsins = new Set(), uniqueSkus = new Set();
+  let withStock = 0, withoutStock = 0;
+
+  filtered.forEach(r => {
+    uniqueAsins.add(r.asin);
+    uniqueSkus.add(r.sku);
+    if (typeof r.currentStock === 'number' && r.currentStock > 0) withStock++; else withoutStock++;
+
+    const key = r.accountIdx + '|' + r.marketplaceIdx + '|' + r.asin;
+    if (!seen.has(key)) {
+      seen.add(key);
+      totalSpend += (typeof r.spend === 'number' ? r.spend : 0);
+      totalUnits += (typeof r.units === 'number' ? r.units : 0);
+    }
+  });
+
+  const cards = [
+    ['Visible Rows', filtered.length],
+    ['Unique ASINs', uniqueAsins.size],
+    ['Unique SKUs', uniqueSkus.size],
+    ['Total PPC Spend', '£' + totalSpend.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})],
+    ['Total Units Ordered', totalUnits.toLocaleString()],
+    ['Products With Current Stock', withStock],
+    ['Products Without Current Stock', withoutStock],
+  ];
+  document.getElementById('summaryCards').innerHTML = cards.map(([label, value]) =>
+    `<div class="card"><span class="label">${label}</span><span class="value">${value}</span></div>`
+  ).join('');
+}
+
+function renderDataQualityPanel() {
+  let real = 0, zero = 0, outside = 0, nomatch = 0;
+  allCalculated.forEach(r => {
+    if (typeof r.sessions === 'number') { if (r.sessions > 0) real++; else zero++; }
+    else if (r.sessions === 'N/A — source outside reporting date coverage') outside++;
+    else nomatch++;
+  });
+  document.getElementById('dqPanel').innerHTML = `
+    <span class="dq-title">Traffic Data Quality (${currentPeriod}d):</span>
+    <span class="dq-stats">
+      <span>Real: <b>${real.toLocaleString()}</b></span>
+      <span>Confirmed zero: <b>${zero.toLocaleString()}</b></span>
+      <span>Outside coverage: <b>${outside.toLocaleString()}</b></span>
+      <span>Never tracked: <b>${nomatch.toLocaleString()}</b></span>
+    </span>
+    <span class="dq-note">Traffic data is unavailable or outdated for some account and marketplace combinations. Affected cells show N/A. Sales, PPC spend, and current stock are not affected.</span>
+  `;
+}
+
+const REASON_TOOLTIPS = {
+  'N/A — source outside reporting date coverage': 'Source outside reporting date coverage',
+  'N/A — no matching traffic source row': 'No matching traffic source row',
+  'N/A — traffic feed unavailable for account/marketplace': 'Traffic feed unavailable for this account and marketplace',
+  'N/A — mapping unresolved': 'Product mapping unresolved',
+};
+
+function fmt(value, def) {
+  if (typeof value === 'string') {
+    const tooltip = REASON_TOOLTIPS[value] || value.replace(/^N\/A\s*—\s*/, '').replace(/^./, c => c.toUpperCase());
+    return { text: 'N/A', cls: 'na-cell', tooltip };
+  }
+  if (value === null || value === undefined) {
+    return { text: 'N/A', cls: 'na-cell', tooltip: 'Not available for this product' };
+  }
+  if (typeof value === 'number') {
+    const negCls = value < 0 ? 'negative-value' : '';
+    if (def.pct) return { text: value.toFixed(2) + '%', cls: [value === 0 ? 'zero-real' : '', negCls].filter(Boolean).join(' ') };
+    if (def.money) return { text: '£' + value.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}), cls: [value === 0 ? 'zero-real' : '', negCls].filter(Boolean).join(' ') };
+    return { text: value.toLocaleString(), cls: [value === 0 ? 'zero-real' : '', negCls].filter(Boolean).join(' ') };
+  }
+  return { text: String(value), cls: '' };
+}
+
+function render() {
+  const pageSize = parseInt(document.getElementById('pageSize').value, 10);
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  if (page > totalPages) page = totalPages;
+  const start = (page-1)*pageSize;
+  const pageRows = filtered.slice(start, start+pageSize);
+
+  const tbody = document.getElementById('reportBody');
+  const emptyState = document.getElementById('emptyState');
+  if (pageRows.length === 0) {
+    tbody.innerHTML = '';
+    emptyState.style.display = 'block';
+  } else {
+    emptyState.style.display = 'none';
+    tbody.innerHTML = pageRows.map(r => '<tr>' + VISIBLE_COLUMNS.map(def => {
+      const isTitle = def.key === 'title';
+      const isPlainIdentity = def.key === 'asin' || def.key === 'sku';
+      if (isTitle) {
+        // Required structure: <td class="col-title"><div class="title-text" ...>
+        // -- the line-clamp lives on the inner div, never directly on the td,
+        // so the td keeps normal table-cell layout behaviour.
+        const raw = r.title;
+        const safe = String(raw || 'N/A - source not available').replace(/"/g,'&quot;');
+        const displayText = raw ? raw.replace(/</g,'&lt;') : 'N/A';
+        return `<td class="col-title"><div class="title-text" title="${safe}" aria-label="${safe}">${displayText}</div></td>`;
+      }
+      if (isPlainIdentity) {
+        const raw = String(r[def.key] || '');
+        return `<td class="${def.cls}">${raw.replace(/</g,'&lt;')}</td>`;
+      }
+      const raw = r[def.key];
+      const { text, cls, tooltip } = fmt(raw, def);
+      const classes = [def.cls||'', cls].filter(Boolean).join(' ');
+      const isNa = cls === 'na-cell';
+      const attrs = isNa
+        ? ` title="${(tooltip||'').replace(/"/g,'&quot;')}" aria-label="Unavailable: ${(tooltip||'').replace(/"/g,'&quot;')}"`
+        : '';
+      return `<td class="${classes}"${attrs}>${text}</td>`;
+    }).join('') + '</tr>').join('');
+  }
+  document.getElementById('pageInfo').textContent = `Page ${page} of ${totalPages} (${filtered.length} filtered rows)`;
+}
+
+function csvEscape(value) {
+  const s = String(value === null || value === undefined ? '' : value);
+  if (/[",\n]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
+  return s;
+}
+
+function slugify(s) {
+  return String(s || 'all').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'all';
+}
+
+function csvValue(raw) {
+  if (raw === null || raw === undefined) return 'N/A - not available for this product';
+  return raw;
+}
+
+function downloadCsv() {
+  const acc = document.getElementById('accountFilter').value || 'all-accounts';
+  const mkt = document.getElementById('marketplaceFilter').value || 'all-marketplaces';
+  const csvCols = [
+    { key: 'account', label: 'Account' },
+    { key: 'marketplace', label: 'Marketplace' },
+    ...VISIBLE_COLUMNS,
+  ];
+  const header = csvCols.map(c => csvEscape(c.label)).join(',');
+  const body = filtered.map(r => csvCols.map(c => {
+    if (c.key === 'account') return csvEscape(DATA.ACCOUNTS[r.accountIdx]);
+    if (c.key === 'marketplace') return csvEscape(DATA.MARKETPLACES[r.marketplaceIdx]);
+    const raw = c.key === 'title' ? r.title : r[c.key];
+    return csvEscape(csvValue(raw));
+  }).join(',')).join('\r\n');
+  const csvContent = '﻿' + header + '\r\n' + body;
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const today = '__GENERATION_DATE__';
+  a.href = url;
+  a.download = `${today}_${slugify(acc)}_${slugify(mkt)}_amazon_no_moving_${currentPeriod}d.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function populateFilterOptions() {
+  document.getElementById('accountFilter').innerHTML = '<option value="">All</option>' +
+    DATA.ACCOUNTS.map(a => `<option value="${a}">${a}</option>`).join('');
+  document.getElementById('marketplaceFilter').innerHTML = '<option value="">All</option>' +
+    DATA.MARKETPLACES.map(m => `<option value="${m}">${m}</option>`).join('');
+}
+
+async function init() {
+  try {
+    const text = await base64ToGunzippedText(B64_GZIP_DATA);
+    DATA = JSON.parse(text);
+
+    document.getElementById('loadingIndicator').style.display = 'none';
+    document.getElementById('appBody').style.display = 'block';
+
+    populateFilterOptions();
+    renderColGroup();
+    renderHeader();
+
+    document.getElementById('accountFilter').addEventListener('change', applyFilters);
+    document.getElementById('marketplaceFilter').addEventListener('change', applyFilters);
+    let searchDebounce;
+    document.getElementById('searchBox').addEventListener('input', () => {
+      clearTimeout(searchDebounce);
+      searchDebounce = setTimeout(applyFilters, 150);
+    });
+    document.getElementById('pageSize').addEventListener('change', () => { page = 1; render(); });
+    document.getElementById('prevPage').addEventListener('click', () => { if (page>1) { page--; render(); } });
+    document.getElementById('nextPage').addEventListener('click', () => { page++; render(); });
+    document.getElementById('resetFilters').addEventListener('click', () => {
+      document.getElementById('accountFilter').value = '';
+      document.getElementById('marketplaceFilter').value = '';
+      document.getElementById('searchBox').value = '';
+      sortColKey = null; sortAsc = true;
+      applyFilters();
+    });
+    document.getElementById('downloadCsv').addEventListener('click', downloadCsv);
+    document.getElementById('periodFilter').addEventListener('change', (e) => {
+      loadPeriod(parseInt(e.target.value, 10));
+    });
+
+    loadPeriod(30);
+  } catch (err) {
+    document.getElementById('loadingIndicator').style.display = 'none';
+    const banner = document.getElementById('errorBanner');
+    banner.style.display = 'block';
+    banner.textContent = 'This report could not be loaded: ' + (err && err.message ? err.message : String(err)) +
+      '. Please try opening this file in a recent version of Chrome, Edge, Firefox, or Safari.';
+  }
+}
+
+init();
+</script>
+</body>
+</html>

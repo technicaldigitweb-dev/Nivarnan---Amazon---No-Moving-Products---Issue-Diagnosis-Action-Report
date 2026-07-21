@@ -1,0 +1,33 @@
+# anpia_daily.cron.example -- REQ-ANPIA-REQ-01-D02
+#
+# FALLBACK ONLY. Prefer the systemd service + timer
+# (05_IMPLEMENTATION/deployment/systemd/anpia-daily.{service,timer}) --
+# it gives Persistent=true (catch-up after downtime), proper logging to
+# journald, and hardened service isolation that plain cron does not.
+#
+# This file is an EXAMPLE for reference only. It is NOT installed by any
+# script in this repository, and nothing in this task has added it (or
+# anything else) to any crontab on any machine.
+#
+# CRON_TZ requires a reasonably modern cron implementation (e.g. cronie,
+# Vixie cron with CRON_TZ support). If the target's cron does NOT honor
+# CRON_TZ, do not assume the schedule below is correct -- convert
+# 12:00 Asia/Colombo (UTC+05:30, no DST) to the system's actual crontab
+# timezone by hand instead of relying on this line, and document that
+# conversion at install time.
+
+CRON_TZ=Asia/Colombo
+
+# minute hour day month weekday command
+0 12 * * * ANPIA_PROJECT_ROOT=/opt/anpia ANPIA_PYTHON_BIN=/opt/anpia/.venv/bin/python3 ANPIA_ENV_FILE=/etc/anpia/.env /opt/anpia/05_IMPLEMENTATION/deployment/run_anpia_daily.sh >> /opt/anpia/09_OUTPUTS/logs/anpia_daily_cron.log 2>&1
+
+# Notes for whoever installs this manually (`crontab -e` as the anpia-svc
+# user -- never root):
+#   - cron does not provide systemd's Persistent=true catch-up behavior --
+#     a missed run (VM down at 12:00) is simply skipped, not caught up.
+#   - cron does not prevent overlapping runs on its own -- this is safe
+#     here ONLY because anpia_daily_pipeline.py's own file lock
+#     (09_OUTPUTS/logs/anpia_daily_pipeline.lock) rejects a second
+#     concurrent run with exit code 7; do not remove that lock.
+#   - Redirect stdout/stderr to a real log file (shown above) since cron
+#     jobs have no journald integration by default.

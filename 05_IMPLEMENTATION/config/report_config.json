@@ -1,0 +1,64 @@
+{
+  "requirement_id": "REQ-AMZ-NMP-001-D01",
+  "primary_mcp": "mcp__claude_ai_postgres__*",
+  "fallback_mcp": "mcp__ledsone-db__* (via project .mcp.json) - not used, no field proven missing from primary",
+  "accounts": [
+    {"label": "LEDSONE", "sub_source_id": 8, "stored_name": "amazon Ledsone"},
+    {"label": "DCVoltage", "sub_source_id": 6, "stored_name": "amazon Dcvoltage"}
+  ],
+  "marketplaces": ["UK", "Germany", "France", "Italy"],
+  "marketplace_warehouse_map": {
+    "UK": "UK",
+    "Germany": "Germany",
+    "France": "Germany",
+    "Italy": "Germany"
+  },
+  "periods_days": [7, 14, 30],
+  "default_period_days": 30,
+  "row_key": ["account", "marketplace", "asin", "resolved_sku"],
+  "blue_columns": [
+    "Amazon ASIN",
+    "Amazon SKU",
+    "Product Title",
+    "Days Since Last Sale in Amazon",
+    "Units in Stock",
+    "Sessions",
+    "Page Views",
+    "Units Ordered",
+    "Conversion Rate (%)",
+    "Click-Through Rate (%)",
+    "Buy Box %",
+    "Price (£)",
+    "Category Avg Price (£)",
+    "PPC Spend",
+    "ACOS (%)"
+  ],
+  "yellow_columns_excluded": [
+    "Category",
+    "Stock Age (Days)",
+    "Root Cause",
+    "Recommended Action",
+    "Priority",
+    "Status",
+    "Owner",
+    "Last Reviewed"
+  ],
+  "review_required_fields": {
+    "Sessions": "DEC-TECH-004 open - amz_traffic_by_asin recent coverage 10-40x below historical average, traffic_data is weekly not daily",
+    "Page Views": "DEC-TECH-004 open - same reason as Sessions",
+    "Buy Box %": "DEC-TECH-004 open - same reason as Sessions",
+    "Conversion Rate (%)": "DEC-TECH-004 open - depends on Sessions",
+    "Click-Through Rate (%)": "DEC-TECH-005 open - 3 candidate sources (ppc_performance / traffic_data / amazon_search_query_performance), none confirmed",
+    "Category Avg Price (£)": "DEC-TECH-006 open - averaging population (marketplace-only / account+marketplace / global) undecided"
+  },
+  "missing_data_placeholder": "N/A - pending source confirmation",
+  "live_stock_disclosure": "These stock figures are based on live data, not past records.",
+  "sb_exclusion": "record_subtype <> 'SB' (Amazon Sponsored Brands cannot be attributed to a specific ASIN/SKU)",
+  "amzn_gr_exclusion": "sku NOT LIKE 'amzn.gr.%' (Amazon-generated platform alias, no inventory equivalent)",
+  "wrong_sku_filter": "wrong_sku = 0 (mandatory on every public.listing_data query)",
+  "ph_task_publication": {
+    "authorized": false,
+    "reason": "DEC-TECH-001 (exact ph_task metadata: assigned_user, assigned_user_team, team, title format, project code, version status) is OPEN and unresolved. No publication will be attempted until this decision is approved by Sajeesan or assigned technical reviewer."
+  },
+  "credential_handling": "No credentials are stored in this file or any implementation file. A production runtime reads connection details from environment variables at execution time (see src/db_connection.py header comment); this session generates report data via the pre-authorized PRIMARY_SKILLS_MCP tool connection, not a direct psycopg2 connection, since no local database credentials are available to this agent."
+}

@@ -1,0 +1,161 @@
+{
+  "requirement_id": "REQ-01-D02",
+  "requirement_cross_reference": "REQ-AMZ-NMP-001-D01",
+  "project": "No Moving Amazon - No-Moving Products - Issue Diagnosis & Action Report",
+  "project_code_anpia": "ANPIA",
+  "report_owner": "Nivarnan",
+  "report_version": "v007",
+  "html_path": "09_OUTPUTS/html/2026-07-20__nivarnan__amazon_no_moving_report_v007.html",
+  "html_filename": "2026-07-20__nivarnan__amazon_no_moving_report_v007.html",
+  "html_byte_size": 3922103,
+  "html_sha256": "60B11A8A077F81DB70E77012CF5DD2F45CD2F9983DB3E9C61848760E126DA192",
+  "target_schema": "tech_team_outputs",
+  "target_table": "ph_task",
+  "generated_timestamp": "2026-07-20T00:00:00",
+  "script_path": "05_IMPLEMENTATION/prepare_ph_task_v007_upload.py",
+
+  "proposed_values": {
+    "project_name": {
+      "value": "No Moving Amazon - No-Moving Products - Issue Diagnosis & Action Report",
+      "source_of_truth": "Active requirement 01_REQUIREMENTS/2026-07-20_satheskanth_REQ-ANPIA_REQ-01-D02.md",
+      "confidence": "HIGH",
+      "reviewer_approval_needed": false
+    },
+    "project_code": {
+      "value": "ANPIA",
+      "source_of_truth": "Approved product code per prior task instruction; no conflicting authoritative naming file found",
+      "confidence": "HIGH",
+      "reviewer_approval_needed": false
+    },
+    "task_name": {
+      "value": "Amazon No-Moving Products Report -- LEDSONE & DCVoltage (v007)",
+      "source_of_truth": "Derived from the v007 report title; no prior ANPIA ph_task row exists to match style against",
+      "confidence": "MEDIUM",
+      "reviewer_approval_needed": true
+    },
+    "task_id": {
+      "value": "ANPIA-2026-07-20-nivarnan-v007",
+      "source_of_truth": "Pattern-matched to the single closest comparable precedent found live: UAWSO-2026-07-20-utharsika-v001 (project_code-date-assigned_user-version). Only ONE precedent of this exact pattern was found, not multiple confirming instances -- disclosed as a reasonable pattern match, not a proven fixed rule. NOTE: live inspection found the table's UNIQUE constraint on task_id has been REMOVED since the reference DDL was written, and 12 existing rows already share duplicate task_id values -- task_id uniqueness is NOT enforced at the database level currently.",
+      "confidence": "MEDIUM",
+      "reviewer_approval_needed": true
+    },
+    "team": {
+      "value": "Technical",
+      "source_of_truth": "Matches the task instruction's stated expected value AND the real EICA rows (same developer, Satheskanth, similar single-consolidated-report style) which use 'Technical'. DISCLOSED CONFLICT: this same developer's UAWSO rows use 'PH Team' instead -- team value varies by project for the same developer, it is not a fixed per-developer constant. 'Technical' is used here because EICA is the closer structural precedent (multi-account report vs UAWSO's per-user daily feed), but this is a judgement call, not a proven single rule.",
+      "confidence": "MEDIUM",
+      "reviewer_approval_needed": true
+    },
+    "developer": {
+      "value": "Satheskanth",
+      "source_of_truth": "Live-confirmed exact capitalization from 271 existing rows authored by this developer",
+      "confidence": "HIGH",
+      "reviewer_approval_needed": false
+    },
+    "assigned_user": {
+      "value": "Nivarnan",
+      "source_of_truth": "Requirement document's stated business/report owner; no existing ph_task row for this user was found to confirm exact capitalization convention against",
+      "confidence": "MEDIUM",
+      "reviewer_approval_needed": true
+    },
+    "assigned_user_team": {
+      "value": null,
+      "source_of_truth": "UNPROVEN. 'ph_priors' is the dominant convention (216 of 271 rows) but no prior row exists for Nivarnan specifically to confirm which board (ph_priors / ebay_priors / ah_priors) is correct for this user. Left null rather than guessed -- per the column's own comment, NULL rows appear on neither board until backfilled, which is the safe default until confirmed.",
+      "confidence": "LOW",
+      "reviewer_approval_needed": true
+    },
+    "html_content": {
+      "value": "<not embedded in manifest -- read directly from html_path at execution time, verified against html_sha256>",
+      "source_of_truth": "09_OUTPUTS/html/2026-07-20__nivarnan__amazon_no_moving_report_v007.html",
+      "confidence": "HIGH",
+      "reviewer_approval_needed": false
+    },
+    "description": {
+      "value": "ANPIA Amazon No-Moving Products report for LEDSONE and DCVoltage (UK, Germany, France, Italy), v007. Calculations: PASS (reconciled exactly against v005/v006). UI/browser validation: PASS (real Chrome, both required viewports). Publication status: DEFERRED -- USER REVIEW REQUIRED.",
+      "source_of_truth": "Matches the style of existing description values (e.g. EICA/UAWSO 'Automated ... report ...' pattern), summarizing this project's own validated status",
+      "confidence": "HIGH",
+      "reviewer_approval_needed": false
+    },
+    "phase_level": {
+      "value": 1,
+      "source_of_truth": "Dominant live value (182 of 271 rows = 67%); matches the task instruction's stated default",
+      "confidence": "HIGH",
+      "reviewer_approval_needed": false
+    },
+    "version_level": {
+      "value": 7,
+      "source_of_truth": "This is the 7th HTML version produced for this requirement (v001-v007); no prior ANPIA ph_task row exists to confirm whether version_level should track the internal HTML version number or restart at 1 for the first publication -- disclosed as a judgement call",
+      "confidence": "MEDIUM",
+      "reviewer_approval_needed": true
+    },
+    "version_status": {
+      "value": null,
+      "source_of_truth": "GENUINE CONFLICT, NOT RESOLVED -- see 'known_limitations'. The task instruction proposes 'DEFERRED -- USER REVIEW REQUIRED' as the publication status, but the live column's actual value set (found via live DISTINCT query) is: released (224), completed (38), active (4), Released (2, stray case variant), retired (2), rejected (1). NONE of these is 'DEFERRED -- USER REVIEW REQUIRED'. Per this task's own instruction ('If the current project instruction and actual comparable rows conflict, stop and mark AMBER rather than choosing silently'), this field is left unresolved rather than guessed.",
+      "confidence": "NONE",
+      "reviewer_approval_needed": true
+    }
+  },
+
+  "duplicate_check_result": {
+    "method": "Live SELECT on project_name/project_code/task_name/assigned_user/developer ILIKE patterns for Nivarnan/ANPIA/no-moving, plus a targeted project_code+assigned_user exact-match lookup (the latter is what the upload script's check_duplicates() runs at execution time)",
+    "existing_project_code_anpia_plus_assigned_user_nivarnan_rows_found": 0,
+    "existing_broader_topic_or_assigned_user_matches_found": 3,
+    "broader_match_detail": [
+      {
+        "id": 56,
+        "project_name": "Amazon_Grow_Engine",
+        "project_code": "AGE",
+        "task_name": "Amazon UK No-Moving Products Report",
+        "task_id": "AUNMP-2026-06-25-V1",
+        "team": "Development",
+        "developer": "Narthanan",
+        "assigned_user": "Nivarnan",
+        "assigned_user_team": "ph_priors",
+        "version_level": 1,
+        "version_status": "released",
+        "created_at": "2026-07-02T14:39:40+05:30",
+        "updated_at": "2026-07-07T13:50:37+05:30",
+        "html_octet_len": 70671,
+        "description_preview": "Amazon UK No-Moving Products Issue Diagnosis and Recommended Action Report for the 30-day period ending 25 June 2026.",
+        "relevance": "TOPICALLY NEAR-IDENTICAL to this ANPIA report -- same subject (No-Moving Products, Issue Diagnosis and Action Report), same assigned_user (Nivarnan). Differs in scope (UK-only here vs. this report's UK/DE/FR/IT), project_code (AGE vs ANPIA), and developer (Narthanan vs Satheskanth). version_status='released' shows this row is treated as a live, published artifact, not a draft."
+      },
+      {
+        "id": 57,
+        "project_code": "AGE",
+        "task_name": "Amazon UK Price Erosion Monitoring & Control Report",
+        "assigned_user": "Nivarnan",
+        "developer": "Narthanan",
+        "version_status": "released",
+        "relevance": "Same assigned_user, different topic (price erosion, not no-moving products) -- included for completeness, not a topical duplicate."
+      },
+      {
+        "id": 112,
+        "project_code": "AGE",
+        "task_name": "Inventory Optimization for High-Performing ASINs",
+        "assigned_user": "Nivarnan",
+        "developer": "Narthanan",
+        "version_status": "released",
+        "relevance": "Same assigned_user, different topic (high-performing ASIN inventory, not no-moving products) -- included for completeness, not a topical duplicate."
+      }
+    ],
+    "total_existing_ph_task_rows_at_original_inspection": 271,
+    "total_existing_ph_task_rows_at_final_reverification": 275,
+    "row_count_change_explanation": "The +4 rows (ids 375-378) were all created at 2026-07-20 14:29:05 by an unrelated automated process -- project_code 'ebra' (eBay Return Analysis Dashboard), developer Abiraj, assigned_users Thinesh/Jarsini/kobiga/powsteena. None reference ANPIA, no-moving products, Nivarnan, or Satheskanth. Confirmed unrelated to this task's read-only inspection and dry-run testing -- this script's write path is never invoked with a matching --execute + correct token + matching --expected-action combination during any of the 8 safety-gate tests, and even where reached it only prints a message and never calls the INSERT statement; the database session is additionally held in SET TRANSACTION READ ONLY for the entire script lifetime, making a write physically impossible at the database level regardless of application logic."
+  },
+
+  "recommended_action": "BLOCKED_AMBIGUOUS",
+  "recommended_action_confidence": "HIGH (that this is ambiguous, not that a specific resolution is correct)",
+  "recommended_action_rationale": "Re-verification found ph_task row id=56 ('Amazon UK No-Moving Products Report', assigned_user Nivarnan, project_code AGE, version_status released, dated 25 June 2026) is topically near-identical to this ANPIA v007 report. A strict project_code+assigned_user duplicate check (ANPIA + Nivarnan) still returns 0, which would normally support SAFE_NEW_INSERT -- but the broader topical match under a DIFFERENT project_code raises a genuine, unresolved question that only a human reviewer can answer: is 'ANPIA' a new, independent tracking initiative for this report (distinct project_code by design), or should this v007 work instead be recorded as a new version/update against the existing AGE-project row (id=56) so the report's history stays in one place? Per this task's own instruction to stop and flag rather than choose silently when project instruction and live data conflict, this is classified BLOCKED_AMBIGUOUS rather than SAFE_NEW_INSERT until a reviewer decides.",
+
+  "publication_status": "DEFERRED -- USER REVIEW REQUIRED",
+  "reviewer_required": "Sajeesan (technical) and Nivarnan (business) -- both must confirm: (1) whether ANPIA should be a new project_code or this work should instead version/update AGE row id=56; (2) task_name, task_id pattern, team, assigned_user capitalization, assigned_user_team, and version_level; (3) the version_status conflict (no live value matches 'DEFERRED -- USER REVIEW REQUIRED' -- note AGE row id=56 uses 'released', which may inform but does not resolve this project's own status value). Narthanan (developer of the AGE-project no-moving report) may also have relevant context on why that report is UK-only and whether it is still the system of record.",
+
+  "known_limitations": [
+    "NEWLY SURFACED ON FINAL RE-VERIFICATION: a topically near-identical report already exists in ph_task under a different project_code (AGE, id=56, 'Amazon UK No-Moving Products Report', assigned_user Nivarnan, version_status released, dated 25 June 2026). This was not reflected in the original duplicate_check_result and materially changes the recommended action from SAFE_NEW_INSERT to BLOCKED_AMBIGUOUS -- see recommended_action_rationale and duplicate_check_result.broader_match_detail above.",
+    "version_status has no proven value matching this project's 'DEFERRED -- USER REVIEW REQUIRED' status -- the live enum-like value set does not include any deferred/pending-review state at all (released/completed/active/retired/rejected, plus a stray 'Released' case variant). A reviewer must decide whether to (a) introduce a new value, (b) reuse an existing value with a caveat noted elsewhere, or (c) not create the row until publication is actually approved.",
+    "assigned_user_team is unproven for this specific user in the ANPIA context -- left null pending confirmation. Note the AGE-project rows for the same user (Nivarnan) use 'ph_priors', which is a data point but not proof for the ANPIA project specifically.",
+    "task_id uniqueness is not enforced by the database (the UNIQUE constraint referenced in the older reference-script DDL comment no longer exists live; duplicate task_id values already exist among current rows) -- task_id alone cannot be relied on as a safe de-duplication key for any future automated run.",
+    "team value varies by project for the same developer (Satheskanth uses both 'Technical' and 'PH Team' across different projects) -- 'Technical' here is a reasoned choice based on the closer structural precedent (EICA), not a proven fixed rule.",
+    "Total ph_task row count changed from 271 (original inspection) to 275 (final re-verification) due to an unrelated automated process inserting 4 eBay-project rows -- see duplicate_check_result.row_count_change_explanation. This confirms ph_task is an actively written-to, shared production table, not an idle/static one.",
+    "This manifest and script were validated in dry-run mode only. No row has been inserted. No write has occurred at any point in this task."
+  ]
+}
